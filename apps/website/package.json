@@ -1,5 +1,8 @@
 {
   "name": "@open-device/website",
   "version": "0.0.0",
-  "private": true
+  "private": true,
+  "scripts": {
+    "dev": "bun run serve.ts"
+  }
 }
