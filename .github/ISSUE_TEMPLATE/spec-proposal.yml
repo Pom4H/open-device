@@ -1,0 +1,63 @@
+name: Specification proposal
+description: Propose a change to the package, runtime, view, scenario, or registry contrac
+title: "spec: "
+labels:
+  - specification
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Open Device is pre-alpha. Concrete equipment and consumer examples are more useful than abstract completeness.
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Real use case
+      description: Which physical/logical device and consumer workflow need this change?
+      placeholder: A vendor publishes ... and a consumer needs to ...
+    validations:
+      required: true
+  - type: textarea
+    id: current-limi
+    attributes:
+      label: Current limitation
+      description: Why can this not be represented by the current core, a profile, or an adapter?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed package or protocol shape
+      description: Include compact JSON, HTML, ABI, or flow examples where useful.
+    validations:
+      required: true
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Expected layer
+      options:
+        - Core specification
+        - Target profile
+        - Consumer adapter
+        - Unsure
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and migration
+      description: How would existing packages and consumers behave?
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Security and resource limits
+      description: Describe new trust, execution, network, origin, or hardware-command implications.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: true

@@ -1,0 +1,33 @@
+{
+  "name": "open-device",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Physical devices as code — a web-native device package format and toolchain",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pom4H/open-device.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Pom4H/open-device/issues"
+  },
+  "packageManager": "bun@1.1.33",
+  "engines": {
+    "bun": ">=1.1.33"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "profiles/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "dev": "bun scripts/run-workspaces.ts dev @open-device/website",
+    "build": "bun scripts/run-workspaces.ts build",
+    "typecheck": "bun scripts/run-workspaces.ts typecheck",
+    "test": "bun scripts/run-workspaces.ts test",
+    "lint": "bun scripts/check-docs.ts && bun scripts/run-workspaces.ts lint",
+    "format": "bun scripts/run-workspaces.ts format",
+    "check:docs": "bun scripts/check-docs.ts"
+  }
+}

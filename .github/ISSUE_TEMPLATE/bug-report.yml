@@ -1,0 +1,46 @@
+name: Bug repor
+description: Report incorrect documentation, validation, runtime, view-host, or CLI behavior
+title: "fix: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the observed result and the result you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Prefer a synthetic package or fixture. Remove credentials and private device data.
+      render: shell
+    validations:
+      required: true
+  - type: inpu
+    id: commi
+    attributes:
+      label: Version or commi
+      placeholder: commit SHA or package version
+    validations:
+      required: true
+  - type: inpu
+    id: bun
+    attributes:
+      label: Bun version
+      placeholder: output of bun --version
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Include digests and package IDs, but no credentials or customer data.
+      render: tex
+  - type: checkboxes
+    id: security
+    attributes:
+      label: Security check
+      options:
+        - label: This report does not disclose a vulnerability that should use private reporting.
+          required: true

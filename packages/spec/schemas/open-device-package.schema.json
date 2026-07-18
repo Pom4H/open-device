@@ -1,0 +1,302 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/open-device-package.schema.json",
+  "title": "Open Device package manifest",
+  "description": "Pre-alpha schema for open-device.json. Compatibility is not guaranteed before the first tagged specification release.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifestVersion",
+    "id",
+    "version",
+    "kind",
+    "name",
+    "title",
+    "description",
+    "vendor",
+    "license",
+    "model"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri"
+    },
+    "manifestVersion": {
+      "const": "0.1"
+    },
+    "id": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "version": {
+      "$ref": "#/$defs/semanticVersion"
+    },
+    "kind": {
+      "enum": [
+        "physical-device",
+        "logical-device",
+        "runtime",
+        "plant-model"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "vendor": {
+      "$ref": "#/$defs/vendor"
+    },
+    "license": {
+      "type": "string",
+      "description": "SPDX license expression",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "model": {
+      "$ref": "#/$defs/artifact"
+    },
+    "views": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/view"
+      }
+    },
+    "logic": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/logic"
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/scenarioReference"
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/dependency"
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "format": "uri",
+        "pattern": "^https://"
+      },
+      "additionalProperties": true
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    }
+  },
+  "$defs": {
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "integrity": {
+      "type": "string",
+      "pattern": "^sha256-[A-Za-z0-9+/]+={0,2}$"
+    },
+    "vendor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "url"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["href", "mediaType"],
+      "properties": {
+        "href": {
+          "type": "string",
+          "format": "uri-reference",
+          "minLength": 1
+        },
+        "mediaType": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9!#$&^_.+-]+/[A-Za-z0-9!#$&^_.+-]+(?:;.*)?$"
+        },
+        "integrity": {
+          "$ref": "#/$defs/integrity"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "view": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "role", "entrypoint"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/localId"
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "entrypoint": {
+          "$ref": "#/$defs/artifact"
+        },
+        "protocol": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "logic": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "mode", "abi", "module"],
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/localId"
+            },
+            "mode": {
+              "const": "standalone"
+            },
+            "abi": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "profile": {
+              "type": "string",
+              "format": "uri"
+            },
+            "module": {
+              "$ref": "#/$defs/artifact"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "mode", "abi", "program", "runtime"],
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/localId"
+            },
+            "mode": {
+              "const": "program"
+            },
+            "abi": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "profile": {
+              "type": "string",
+              "format": "uri"
+            },
+            "program": {
+              "$ref": "#/$defs/artifact"
+            },
+            "runtime": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*#[A-Za-z0-9._-]+$"
+            }
+          }
+        }
+      ]
+    },
+    "scenarioReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "target", "source"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/localId"
+        },
+        "target": {
+          "$ref": "#/$defs/localId"
+        },
+        "source": {
+          "$ref": "#/$defs/artifact"
+        }
+      }
+    },
+    "dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "integrity"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "version": {
+          "$ref": "#/$defs/semanticVersion"
+        },
+        "integrity": {
+          "$ref": "#/$defs/integrity"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "runtimeFidelity": {
+          "enum": ["exact", "compatible", "unknown"]
+        },
+        "sourceRecoverability": {
+          "enum": ["full", "partial", "none", "unknown"]
+        },
+        "semanticConfidence": {
+          "enum": ["declared", "inferred", "vendor-verified", "unknown"]
+        }
+      }
+    },
+    "localId": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+      "minLength": 1,
+      "maxLength": 128
+    }
+  }
+}
