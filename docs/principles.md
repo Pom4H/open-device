@@ -40,7 +40,7 @@ The neutral envelope is small, while profiles may describe rich vendor-specific
 targets. A Saturn FBD binary, a standalone Wasm controller, and a documentation-only
 sensor can all be valid packages without forcing their capabilities into one runtime.
 
-## 7. Behavior is deterministic by defaul
+## 7. Behavior is deterministic by default
 
 Logical runtimes receive elapsed time, inputs, configuration, and deterministic seed
 from the host. Ambient time, network, filesystem, process APIs, and randomness are
@@ -52,7 +52,7 @@ not available unless an explicit, reviewed capability profile grants them.
 runtime, scenario suite, runner, and environment. Evidence becomes stale whenever
 any of those inputs change.
 
-## 9. The released artifact is the test subjec
+## 9. The released artifact is the test subject
 
 Reference simulations may improve authoring, but release scenarios must execute the
 artifact that consumers will run. A parallel implementation cannot be the sole gate
@@ -61,7 +61,7 @@ for publishing a target binary.
 ## 10. Quality is part of the value
 
 Telemetry is not just a scalar. Runtime frames carry value, source timestamp, and
-quality. Hosts and views must visibly preserve invalid, stale, uncertain, and absen
+quality. Hosts and views must visibly preserve invalid, stale, uncertain, and absent
 states instead of silently presenting them as good data.
 
 ## 11. Static packages before a large registry service
@@ -70,7 +70,7 @@ The first release must work from local directories and immutable HTTPS files. Se
 namespaces, signing, federation, and hosted publishing are added after the authoring
 and consumption workflow is pleasant.
 
-## 12. Safety policy belongs to the hos
+## 12. Safety policy belongs to the host
 
 Packages declare capabilities and actions. The consuming SCADA, simulator, or
 deployment platform decides who may execute them, whether confirmation is required,

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/open-device-package.schema.json",
+  "manifestVersion": "0.1",
+  "id": "https://devices.open-device.dev/reference/motorized-valve",
+  "version": "0.1.0",
+  "kind": "physical-device",
+  "name": "motorized-valve",
+  "title": "Motor-operated gate valve",
+  "description": "Reference motor-operated gate valve with open/close commands, end-position limit switches and water process connections.",
+  "vendor": {
+    "name": "Open Device Reference",
+    "url": "https://devices.open-device.dev"
+  },
+  "license": "Apache-2.0",
+  "model": {
+    "href": "./model/device-model.json",
+    "mediaType": "application/json"
+  },
+  "views": [
+    {
+      "id": "front-panel",
+      "role": "front-panel",
+      "entrypoint": {
+        "href": "./views/device.svg",
+        "mediaType": "image/svg+xml"
+      }
+    }
+  ],
+  "extensions": {
+    "https://open-device.dev/extensions/topology-node": {
+      "view": "front-panel",
+      "width": 220,
+      "height": 240,
+      "ports": {
+        "open-command": { "x": 0, "y": 52, "side": "left", "signal": "digital" },
+        "close-command": { "x": 0, "y": 84, "side": "left", "signal": "digital" },
+        "opened": { "x": 220, "y": 52, "side": "right", "signal": "digital" },
+        "closed": { "x": 220, "y": 84, "side": "right", "signal": "digital" },
+        "process-in": { "x": 0, "y": 193, "side": "left", "signal": "process" },
+        "process-out": { "x": 220, "y": 193, "side": "right", "signal": "process" }
+      }
+    }
+  }
+}

@@ -3,7 +3,7 @@
 - Status: accepted
 - Date: 2026-07-18
 
-## Contex
+## Context
 
 Some logical devices can ship as self-contained WebAssembly. Controller ecosystems
 often use a stable engine with many programs encoded as data. In the first reference

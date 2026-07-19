@@ -3,7 +3,7 @@
 - Status: accepted
 - Date: 2026-07-18
 
-## Contex
+## Context
 
 Device packages should work in browser documentation, simulators, SCADA editors,
 vendor catalogs, and offline engineering tools. Starting with npm or OCI would provide

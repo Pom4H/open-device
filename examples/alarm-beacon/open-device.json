@@ -1,0 +1,39 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/open-device-package.schema.json",
+  "manifestVersion": "0.1",
+  "id": "https://devices.open-device.dev/reference/alarm-beacon",
+  "version": "0.1.0",
+  "kind": "physical-device",
+  "name": "alarm-beacon",
+  "title": "Signal tower with sounder",
+  "description": "Reference three-colour signal tower with an acoustic sounder, driven by a discrete alarm output.",
+  "vendor": {
+    "name": "Open Device Reference",
+    "url": "https://devices.open-device.dev"
+  },
+  "license": "Apache-2.0",
+  "model": {
+    "href": "./model/device-model.json",
+    "mediaType": "application/json"
+  },
+  "views": [
+    {
+      "id": "front-panel",
+      "role": "front-panel",
+      "entrypoint": {
+        "href": "./views/device.svg",
+        "mediaType": "image/svg+xml"
+      }
+    }
+  ],
+  "extensions": {
+    "https://open-device.dev/extensions/topology-node": {
+      "view": "front-panel",
+      "width": 170,
+      "height": 240,
+      "ports": {
+        "alarm": { "x": 0, "y": 120, "side": "left", "signal": "digital" }
+      }
+    }
+  }
+}

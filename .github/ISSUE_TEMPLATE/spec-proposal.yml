@@ -1,5 +1,5 @@
 name: Specification proposal
-description: Propose a change to the package, runtime, view, scenario, or registry contrac
+description: Propose a change to the package, runtime, view, scenario, or registry contract
 title: "spec: "
 labels:
   - specification
@@ -17,7 +17,7 @@ body:
     validations:
       required: true
   - type: textarea
-    id: current-limi
+    id: current-limit
     attributes:
       label: Current limitation
       description: Why can this not be represented by the current core, a profile, or an adapter?

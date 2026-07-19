@@ -1,0 +1,26 @@
+{
+  "scenarioVersion": "0.1",
+  "id": "feedback-timeout-alarm",
+  "title": "Missing run feedback latches an alarm after the timeout",
+  "target": "controller",
+  "reset": "cold",
+  "steps": [
+    {
+      "write": {
+        "pressure": { "value": 1.0, "quality": "good" },
+        "auto-mode": { "value": true, "quality": "good" },
+        "emergency-stop": { "value": false, "quality": "good" },
+        "pump-feedback": { "value": false, "quality": "good" }
+      }
+    },
+    { "tick": { "durationMs": 2200, "periodMs": 100 } },
+    { "expect": { "pump-command": { "equals": true } } },
+    { "tick": { "durationMs": 3100, "periodMs": 100 } },
+    {
+      "expect": {
+        "pump-command": { "equals": false },
+        "alarm": { "equals": true }
+      }
+    }
+  ]
+}

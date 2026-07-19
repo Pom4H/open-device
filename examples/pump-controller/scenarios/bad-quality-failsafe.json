@@ -1,0 +1,29 @@
+{
+  "scenarioVersion": "0.1",
+  "id": "bad-quality-failsafe",
+  "title": "Bad pressure quality stops the pump and raises an alarm",
+  "target": "controller",
+  "reset": "cold",
+  "steps": [
+    {
+      "write": {
+        "pressure": { "value": 1.0, "quality": "good" },
+        "auto-mode": { "value": true, "quality": "good" },
+        "emergency-stop": { "value": false, "quality": "good" },
+        "pump-feedback": { "value": false, "quality": "good" }
+      }
+    },
+    { "tick": { "durationMs": 2100, "periodMs": 100 } },
+    { "write": { "pump-feedback": { "value": true, "quality": "good" } } },
+    { "tick": { "durationMs": 200, "periodMs": 100 } },
+    { "expect": { "pump-command": { "equals": true } } },
+    { "write": { "pressure": { "value": 1.0, "quality": "bad" } } },
+    { "tick": { "durationMs": 100, "periodMs": 100 } },
+    {
+      "expect": {
+        "pump-command": { "equals": false },
+        "alarm": { "equals": true }
+      }
+    }
+  ]
+}

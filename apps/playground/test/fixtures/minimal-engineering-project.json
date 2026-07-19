@@ -1,0 +1,41 @@
+{
+  "projectVersion": "0.1",
+  "id": "minimal-water-loop",
+  "title": "Minimal water loop",
+  "instances": [
+    {
+      "id": "tank-a",
+      "adapter": "reservoir",
+      "definition": {
+        "id": "https://devices.open-device.dev/reference/suction-tank",
+        "version": "0.1.0",
+        "alias": "@reference/suction-tank",
+        "renderer": "suction-tank"
+      },
+      "title": "Supply tank",
+      "subtitle": "TK-A",
+      "position": { "x": 180, "y": 360 }
+    },
+    {
+      "id": "pump-a",
+      "adapter": "pump1",
+      "definition": {
+        "id": "https://devices.open-device.dev/reference/centrifugal-pump",
+        "version": "0.1.0",
+        "alias": "@reference/centrifugal-pump",
+        "renderer": "centrifugal-pump"
+      },
+      "title": "Transfer pump",
+      "subtitle": "P-A",
+      "position": { "x": 620, "y": 340 }
+    }
+  ],
+  "connections": [
+    {
+      "id": "pipe-tank-pump",
+      "from": { "instanceId": "tank-a", "portId": "outlet" },
+      "to": { "instanceId": "pump-a", "portId": "suction" }
+    }
+  ],
+  "programs": []
+}

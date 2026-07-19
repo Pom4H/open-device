@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/open-device-package.schema.json",
+  "manifestVersion": "0.1",
+  "id": "https://devices.open-device.dev/saturn/saturn-plc",
+  "version": "0.1.0",
+  "kind": "physical-device",
+  "name": "saturn-plc",
+  "title": "Saturn PLC",
+  "description": "Saturn-compatible multifunction controller with the terminal layout used by the reference booster-station project.",
+  "vendor": {
+    "name": "Open Device Saturn profile",
+    "url": "https://github.com/Pom4H/open-device"
+  },
+  "license": "Apache-2.0",
+  "model": {
+    "href": "./model/device-model.json",
+    "mediaType": "application/json"
+  }
+}

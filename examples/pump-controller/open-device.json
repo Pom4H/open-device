@@ -1,0 +1,104 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/open-device-package.schema.json",
+  "manifestVersion": "0.1",
+  "id": "https://devices.example.com/pump-controller",
+  "version": "0.1.0",
+  "kind": "logical-device",
+  "name": "pump-controller",
+  "title": "Pump controller",
+  "description": "Pressure-controlled pump with start delay, emergency-stop interlock, feedback alarm, and fail-safe quality handling",
+  "vendor": {
+    "name": "Open Device examples",
+    "url": "https://github.com/Pom4H/open-device"
+  },
+  "license": "Apache-2.0",
+  "model": {
+    "href": "./model/device-model.json",
+    "mediaType": "application/json"
+  },
+  "views": [
+    {
+      "id": "front-panel",
+      "role": "browser-front-panel",
+      "entrypoint": {
+        "href": "./views/front-panel/index.html",
+        "mediaType": "text/html"
+      },
+      "protocol": "open-device:view-messages@0.1"
+    }
+  ],
+  "logic": [
+    {
+      "id": "controller",
+      "mode": "standalone",
+      "abi": "open-device:cyclic-control@0.1",
+      "module": {
+        "href": "./logic/controller.wasm",
+        "mediaType": "application/wasm"
+      },
+      "bindings": {
+        "inputs": ["pressure", "auto-mode", "emergency-stop", "pump-feedback"],
+        "outputs": ["pump-command", "alarm"],
+        "params": ["setpoint-low", "setpoint-high", "start-delay-ms", "feedback-timeout-ms"]
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "normal-pressure-idle",
+      "target": "controller",
+      "source": {
+        "href": "./scenarios/normal-pressure-idle.json",
+        "mediaType": "application/json"
+      }
+    },
+    {
+      "id": "low-pressure-delayed-start",
+      "target": "controller",
+      "source": {
+        "href": "./scenarios/low-pressure-delayed-start.json",
+        "mediaType": "application/json"
+      }
+    },
+    {
+      "id": "high-pressure-stops",
+      "target": "controller",
+      "source": {
+        "href": "./scenarios/high-pressure-stops.json",
+        "mediaType": "application/json"
+      }
+    },
+    {
+      "id": "emergency-stop",
+      "target": "controller",
+      "source": {
+        "href": "./scenarios/emergency-stop.json",
+        "mediaType": "application/json"
+      }
+    },
+    {
+      "id": "feedback-timeout-alarm",
+      "target": "controller",
+      "source": {
+        "href": "./scenarios/feedback-timeout-alarm.json",
+        "mediaType": "application/json"
+      }
+    },
+    {
+      "id": "bad-quality-failsafe",
+      "target": "controller",
+      "source": {
+        "href": "./scenarios/bad-quality-failsafe.json",
+        "mediaType": "application/json"
+      }
+    },
+    {
+      "id": "retained-setpoints",
+      "target": "controller",
+      "source": {
+        "href": "./scenarios/retained-setpoints.json",
+        "mediaType": "application/json"
+      }
+    }
+  ]
+}

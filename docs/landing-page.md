@@ -37,7 +37,7 @@ SCADA editors, tests, and real product adapters.
 
 ### Show the package
 
-```tex
+```text
 @vendor/device
 ├── open-device.json
 ├── model/
@@ -77,7 +77,7 @@ policy explicit.
 
 Standards row:
 
-```tex
+```text
 HTTPS · JSON Schema · HTML · CSS · ES modules · WebAssembly · Web Crypto
 ```
 
@@ -85,7 +85,7 @@ HTTPS · JSON Schema · HTML · CSS · ES modules · WebAssembly · Web Crypto
 
 Heading: **Bring a module, or bring a program.**
 
-```tex
+```text
 controller.wasm
 
 or
@@ -111,7 +111,7 @@ stale.
 
 Visual sequence:
 
-```tex
+```text
 scenario → released artifact → deterministic runtime → digest-bound evidence
 ```
 

@@ -1,0 +1,80 @@
+<svg viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Variable frequency drive front panel" font-family="Inter, ui-sans-serif, system-ui, sans-serif">
+  <defs>
+    <filter id="od-vfd-soft" x="-15%" y="-15%" width="130%" height="130%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#000000" flood-opacity=".35"/></filter>
+    <linearGradient id="od-vfd-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#39455a"/><stop offset=".55" stop-color="#2b3547"/><stop offset="1" stop-color="#222b3a"/>
+    </linearGradient>
+    <clipPath id="od-vfd-l1"><rect x="60" y="6" width="120" height="22" rx="4"/></clipPath>
+    <clipPath id="od-vfd-uvw"><rect x="60" y="272" width="120" height="22" rx="4"/></clipPath>
+  </defs>
+
+  <g filter="url(#od-vfd-soft)"><rect x="14" y="18" width="212" height="264" rx="10" fill="url(#od-vfd-body)" stroke="#10161f" stroke-width="1.4"/></g>
+
+  <!-- heatsink fins -->
+  <g fill="#1a2231">
+    <rect x="24" y="246" width="10" height="30" rx="2"/><rect x="40" y="246" width="10" height="30" rx="2"/><rect x="56" y="246" width="10" height="30" rx="2"/><rect x="72" y="246" width="10" height="30" rx="2"/><rect x="88" y="246" width="10" height="30" rx="2"/><rect x="104" y="246" width="10" height="30" rx="2"/><rect x="120" y="246" width="10" height="30" rx="2"/><rect x="136" y="246" width="10" height="30" rx="2"/><rect x="152" y="246" width="10" height="30" rx="2"/><rect x="168" y="246" width="10" height="30" rx="2"/><rect x="184" y="246" width="10" height="30" rx="2"/><rect x="200" y="246" width="10" height="30" rx="2"/>
+  </g>
+
+  <!-- supply terminal -->
+  <g clip-path="url(#od-vfd-l1)">
+    <rect x="60" y="6" width="120" height="11" fill="#f06b6f"/>
+    <rect x="60" y="17" width="120" height="11" fill="#c93a3f"/>
+  </g>
+  <rect x="60" y="6" width="120" height="22" rx="4" fill="none" stroke="#000000" stroke-opacity=".4"/>
+  <g text-anchor="middle" font-weight="700" font-size="7.5" fill="#ffffff">
+    <text x="90" y="21">L1</text><text x="120" y="21">L2</text><text x="150" y="21">L3</text>
+  </g>
+  <text x="120" y="14.5" text-anchor="middle" font-weight="700" font-size="6.5" fill="#ffffff">AC 3~380V</text>
+
+  <!-- motor terminal -->
+  <g clip-path="url(#od-vfd-uvw)">
+    <rect x="60" y="272" width="120" height="11" fill="#ff8b4a"/>
+    <rect x="60" y="283" width="120" height="11" fill="#d96428"/>
+  </g>
+  <rect x="60" y="272" width="120" height="22" rx="4" fill="none" stroke="#000000" stroke-opacity=".4"/>
+  <text x="120" y="281" text-anchor="middle" font-weight="700" font-size="6.5" fill="#ffffff">MOTOR</text>
+  <g text-anchor="middle" font-weight="700" font-size="7.5" fill="#ffffff">
+    <text x="90" y="291">U</text><text x="120" y="291">V</text><text x="150" y="291">W</text>
+  </g>
+
+  <!-- display -->
+  <rect x="30" y="38" width="180" height="66" rx="6" fill="#0b1220" stroke="#3c4a61" stroke-width="1.2"/>
+  <text x="40" y="52" font-size="7" fill="#64748b" letter-spacing="1">OUTPUT</text>
+  <text data-vfd-hz="" x="120" y="82" text-anchor="middle" font-size="24" font-weight="700" font-family="ui-monospace, monospace" fill="#3ddc84">0.0 Hz</text>
+  <text data-vfd-state="" x="40" y="97" font-size="7.5" font-weight="700" font-family="ui-monospace, monospace" fill="#94a3b8">READY</text>
+  <text data-vfd-amps="" x="200" y="97" text-anchor="end" font-size="7.5" font-family="ui-monospace, monospace" fill="#64748b">0.0 A</text>
+
+  <!-- status leds + fan -->
+  <circle data-vfd-led-run="" cx="40" cy="120" r="4" fill="#1d3524" stroke="#0f1c14"/>
+  <text x="50" y="123" font-size="7" fill="#94a3b8">RUN</text>
+  <circle data-vfd-led-fault="" cx="84" cy="120" r="4" fill="#3a1518" stroke="#230d0f"/>
+  <text x="94" y="123" font-size="7" fill="#94a3b8">FAULT</text>
+
+  <g transform="translate(178 132)">
+    <circle r="21" fill="#141b26" stroke="#3c4a61"/>
+    <g class="od-fan" fill="#8fa3bd">
+      <path d="M0 -17 C 6 -11, 6 -5, 0 -2 C -6 -5, -6 -11, 0 -17 Z"/>
+      <path d="M17 0 C 11 6, 5 6, 2 0 C 5 -6, 11 -6, 17 0 Z"/>
+      <path d="M0 17 C -6 11, -6 5, 0 2 C 6 5, 6 11, 0 17 Z"/>
+      <path d="M-17 0 C -11 -6, -5 -6, -2 0 C -5 6, -11 6, -17 0 Z"/>
+    </g>
+    <circle r="3.4" fill="#3c4a61"/>
+  </g>
+
+  <!-- brand -->
+  <text x="30" y="150" font-size="7" fill="#7b8aa0" letter-spacing="1">REFERENCE DRIVES</text>
+  <text x="30" y="166" font-size="12" font-weight="700" fill="#e2e8f0">RD-4000 · 4 kW</text>
+  <text x="30" y="178" font-size="7" fill="#7b8aa0">IP20 · 3~380 В · 50 Гц</text>
+
+  <!-- control terminals -->
+  <g font-size="6" font-weight="700" fill="#9fb0c6">
+    <rect x="16" y="194" width="12" height="12" rx="2" fill="#245b34" stroke="#0f1c14"/>
+    <text x="32" y="203">RUN</text>
+    <rect x="16" y="226" width="12" height="12" rx="2" fill="#6b5c1c" stroke="#3d3413"/>
+    <text x="32" y="235">REF 4-20</text>
+    <rect x="212" y="194" width="12" height="12" rx="2" fill="#245b34" stroke="#0f1c14"/>
+    <text x="208" y="203" text-anchor="end">FB</text>
+    <rect x="212" y="226" width="12" height="12" rx="2" fill="#5b2429" stroke="#230d0f"/>
+    <text x="208" y="235" text-anchor="end">FLT</text>
+  </g>
+</svg>

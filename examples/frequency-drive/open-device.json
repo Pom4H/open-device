@@ -1,0 +1,44 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/open-device-package.schema.json",
+  "manifestVersion": "0.1",
+  "id": "https://devices.open-device.dev/reference/frequency-drive",
+  "version": "0.1.0",
+  "kind": "physical-device",
+  "name": "frequency-drive",
+  "title": "Variable frequency drive",
+  "description": "Reference 4 kW variable frequency drive: digital run command, 4-20 mA speed reference, run/fault feedback and a three-phase motor output.",
+  "vendor": {
+    "name": "Open Device Reference",
+    "url": "https://devices.open-device.dev"
+  },
+  "license": "Apache-2.0",
+  "model": {
+    "href": "./model/device-model.json",
+    "mediaType": "application/json"
+  },
+  "views": [
+    {
+      "id": "front-panel",
+      "role": "front-panel",
+      "entrypoint": {
+        "href": "./views/device.svg",
+        "mediaType": "image/svg+xml"
+      }
+    }
+  ],
+  "extensions": {
+    "https://open-device.dev/extensions/topology-node": {
+      "view": "front-panel",
+      "width": 240,
+      "height": 300,
+      "ports": {
+        "supply": { "x": 120, "y": 8, "side": "top", "signal": "power" },
+        "motor": { "x": 120, "y": 292, "side": "bottom", "signal": "power" },
+        "run": { "x": 0, "y": 200, "side": "left", "signal": "digital" },
+        "speed-reference": { "x": 0, "y": 232, "side": "left", "signal": "analog" },
+        "run-feedback": { "x": 240, "y": 200, "side": "right", "signal": "digital" },
+        "fault": { "x": 240, "y": 232, "side": "right", "signal": "digital" }
+      }
+    }
+  }
+}

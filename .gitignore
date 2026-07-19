@@ -1,5 +1,6 @@
 node_modules/
 dist/
+evidence.json
 coverage/
 .turbo/
 .cache/
@@ -8,3 +9,7 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# local session artifacts
+artifacts/
+.claude/settings.local.json

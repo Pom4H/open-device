@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d1117">
+  <title>Open Device Studio</title>
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <a class="brand" href="#" aria-label="Open Device Studio">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9Z"/><path d="m8 10 4-2.2 4 2.2v4l-4 2.2L8 14v-4Z"/></svg>
+        </span>
+        <span><strong>Open Device</strong><small>Studio</small></span>
+      </a>
+
+      <nav class="mode-switcher" aria-label="Workspace mode">
+        <button type="button" class="mode-button is-active" data-mode-button="edit">
+          <span aria-hidden="true">⌁</span> FBD program
+        </button>
+        <button type="button" class="mode-button" data-mode-button="simulate">
+          <span aria-hidden="true">◇</span> Equipment topology
+        </button>
+        <button type="button" class="mode-button" data-mode-button="scada">
+          <span aria-hidden="true">◫</span> SCADA / HMI
+        </button>
+      </nav>
+
+      <div class="header-actions">
+        <span id="runtime-badge" class="runtime-badge"><i></i> Loading package…</span>
+        <button type="button" class="icon-button" id="run-scenarios" title="Run package scenarios" aria-label="Run package scenarios">✓</button>
+        <button type="button" class="avatar" title="Local workspace">OD</button>
+      </div>
+    </header>
+
+    <aside class="left-panel">
+      <section class="panel-section editor-only">
+        <div class="section-heading">
+          <span>FBD block library</span>
+          <button type="button" class="quiet-icon" aria-label="Search blocks">⌕</button>
+        </div>
+        <label class="search-field">
+          <span aria-hidden="true">⌕</span>
+          <input id="catalog-search" type="search" placeholder="Search function blocks" autocomplete="off">
+        </label>
+        <div class="catalog-group">
+          <p class="catalog-group-title">Inputs &amp; outputs <span>4</span></p>
+          <button type="button" class="catalog-item" data-add-fbd="INP_PIN">
+            <span class="catalog-thumb controller-thumb">IN</span>
+            <span><strong>Hardware input</strong><small>DI, AI or temperature pin</small></span>
+          </button>
+          <button type="button" class="catalog-item" data-add-fbd="OUT_PIN">
+            <span class="catalog-thumb pump-thumb">OUT</span>
+            <span><strong>Hardware output</strong><small>DO or AO terminal</small></span>
+          </button>
+          <button type="button" class="catalog-item" data-add-fbd="SP">
+            <span class="catalog-thumb sensor-thumb">SP</span>
+            <span><strong>Setpoint</strong><small>Retained operator value</small></span>
+          </button>
+          <button type="button" class="catalog-item" data-add-fbd="WP">
+            <span class="catalog-thumb sensor-thumb">WP</span>
+            <span><strong>Watchpoint</strong><small>Value available to HMI</small></span>
+          </button>
+          <p class="catalog-group-title logic-title">Logic &amp; timing <span>7</span></p>
+          <button type="button" class="catalog-item compact" data-add-fbd="AND"><span class="catalog-thumb logic-thumb">AND</span><span><strong>AND</strong><small>Two-input boolean gate</small></span></button>
+          <button type="button" class="catalog-item compact" data-add-fbd="OR"><span class="catalog-thumb logic-thumb">OR</span><span><strong>OR</strong><small>Two-input boolean gate</small></span></button>
+          <button type="button" class="catalog-item compact" data-add-fbd="NOT"><span class="catalog-thumb logic-thumb">NOT</span><span><strong>NOT</strong><small>Invert signal</small></span></button>
+          <button type="button" class="catalog-item compact" data-add-fbd="CMP"><span class="catalog-thumb compare-thumb">CMP</span><span><strong>Compare</strong><small>Compare two values</small></span></button>
+          <button type="button" class="catalog-item compact" data-add-fbd="RSTRG"><span class="catalog-thumb memory-thumb">RS</span><span><strong>RS trigger</strong><small>Reset-priority memory</small></span></button>
+          <button type="button" class="catalog-item compact" data-add-fbd="TON"><span class="catalog-thumb timer-thumb">TON</span><span><strong>On-delay timer</strong><small>Signal + time setpoint</small></span></button>
+          <button type="button" class="catalog-item compact" data-add-fbd="CONST"><span class="catalog-thumb compare-thumb">123</span><span><strong>Constant</strong><small>Integer source value</small></span></button>
+        </div>
+      </section>
+
+      <section class="panel-section simulate-only equipment-registry">
+        <div class="section-heading"><span>Equipment registry</span><span id="registry-status" class="tiny-badge">Loading</span></div>
+        <label class="search-field">
+          <span aria-hidden="true">⌕</span>
+          <input id="equipment-search" type="search" placeholder="Search equipment" autocomplete="off">
+        </label>
+        <div id="equipment-catalog" class="catalog-group">
+          <div class="empty-catalog">Resolving package manifests…</div>
+        </div>
+        <p class="catalog-source" id="catalog-source">Static source catalog</p>
+      </section>
+
+      <section class="panel-section scada-only system-tree">
+        <div class="section-heading"><span>System</span><span id="system-health" class="tiny-badge good">Healthy</span></div>
+        <button type="button" class="tree-row is-active"><span class="tree-icon">◇</span><span><strong>Booster station PS-01</strong><small>8 instances · 13 connections</small></span></button>
+        <button type="button" class="tree-row"><span class="tree-status" id="tree-plc-status"></span><span><strong>Pump controller</strong><small id="tree-plc-subtitle">Running · deterministic</small></span></button>
+        <button type="button" class="tree-row"><span class="tree-status"></span><span><strong>Pressure sensor</strong><small id="tree-sensor-value">— bar · good</small></span></button>
+        <button type="button" class="tree-row"><span class="tree-status"></span><span><strong>Pump P-101</strong><small id="tree-pump1-value">Stopped · available</small></span></button>
+        <button type="button" class="tree-row"><span class="tree-status"></span><span><strong>Pump P-102</strong><small id="tree-pump2-value">Standby · available</small></span></button>
+        <button type="button" class="tree-row"><span class="tree-status"></span><span><strong>Tank TK-101</strong><small id="tree-level-value">72% · normal</small></span></button>
+      </section>
+
+      <section class="panel-section package-card">
+        <p class="eyebrow">Active controller program</p>
+        <strong id="package-title">Pump controller</strong>
+        <code id="package-badge">loading…</code>
+        <div class="package-meta"><span>Saturn program</span><span id="wasm-size">—</span></div>
+        <div class="package-meta"><span>Checks</span><span>7 artifact-level</span></div>
+        <div class="package-meta"><span>Execution</span><span>Deterministic</span></div>
+      </section>
+    </aside>
+
+    <main class="workspace">
+      <div class="workspace-toolbar">
+        <div>
+          <button type="button" class="tool-button is-active editor-only" id="select-tool" title="Select and move blocks">↖</button>
+          <button type="button" class="tool-button editor-only" id="wire-tool" title="Connect FBD pins">⌁</button>
+          <span class="toolbar-separator editor-only"></span>
+          <button type="button" class="tool-button" id="zoom-out" title="Zoom out">−</button>
+          <button type="button" class="zoom-label" id="zoom-label" title="Reset zoom">100%</button>
+          <button type="button" class="tool-button" id="zoom-in" title="Zoom in">+</button>
+          <button type="button" class="tool-button" id="fit-view" title="Fit workspace">⌗</button>
+        </div>
+          <div class="toolbar-center" id="workspace-title"><strong>Booster station PS-01 · program v2</strong><span>Saturn FBD source</span></div>
+        <div>
+          <span id="connect-hint" class="connect-hint" hidden>Select a compatible port</span>
+          <span id="fbd-build-status" class="tiny-badge good editor-only">COMPILED</span>
+          <button type="button" class="primary-action editor-only" id="compile-fbd">Build .fbdbin</button>
+          <button type="button" class="tool-button editor-only" id="reset-layout" title="Reset program">↺</button>
+          <button type="button" class="primary-action simulate-only" id="simulation-toggle"><span>Ⅱ</span> Pause</button>
+          <button type="button" class="project-action simulate-only" id="import-project">Open project</button>
+          <button type="button" class="project-action simulate-only" id="export-project">Save project</button>
+          <button type="button" class="tool-button simulate-only" id="reset-topology" title="Restore station topology">↺</button>
+          <span class="live-chip scada-only"><i></i> LIVE</span>
+        </div>
+      </div>
+
+      <div id="canvas-viewport" class="canvas-viewport" tabindex="0" aria-label="Device topology workspace">
+        <div id="canvas-world" class="canvas-world">
+          <section id="fbd-workspace" class="fbd-workspace editor-only" aria-label="FBD program editor">
+            <div class="fbd-ruler"><span>NETWORK 1 · TWO-PUMP CASCADE CONTROL</span><span id="fbd-artifact-summary">58 elements · working screen</span></div>
+            <svg id="fbd-edge-layer" class="fbd-edge-layer" width="1760" height="720" viewBox="0 0 1760 720" aria-label="FBD connections"><g id="fbd-edges"></g><path id="fbd-draft-edge" class="fbd-edge draft" hidden></path></svg>
+            <div id="fbd-nodes" class="fbd-nodes"></div>
+          </section>
+          <svg id="cable-layer" class="cable-layer simulate-only" width="1760" height="920" viewBox="0 0 1760 920" aria-label="Connections">
+            <defs>
+              <filter id="cable-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <g id="cables"></g>
+            <path id="draft-cable" class="cable draft" d="" hidden></path>
+          </svg>
+          <div id="nodes-layer" class="nodes-layer simulate-only"></div>
+
+          <section class="scada-board scada-only" aria-label="SCADA overview">
+            <div class="scada-board-header">
+              <div><p class="eyebrow">PROCESS OVERVIEW</p><h2>Booster station PS-01</h2></div>
+              <div><span class="tiny-badge good" id="scada-connection-badge">CONNECTED</span><small id="scada-clock">—</small></div>
+            </div>
+            <svg id="process-diagram" class="pid-svg" viewBox="0 0 1120 460" role="img" aria-label="Booster station process diagram"></svg>
+            <span id="tank-fill" hidden></span><span id="process-pump1" hidden></span><span id="process-pump2" hidden></span><span id="flow-line" hidden></span><span id="flow-line-out" hidden></span>
+            <div class="process-values">
+              <div><small>Header pressure</small><strong><span id="scada-pressure">—</span> <em>bar</em></strong></div>
+              <div><small>Reservoir level</small><strong><span id="scada-level">72</span> <em>%</em></strong></div>
+              <div><small>P-101 lead</small><strong id="scada-pump1-state">STOPPED</strong></div>
+              <div><small>P-102 lag</small><strong id="scada-pump2-state">STANDBY</strong></div>
+              <div><small>Controller mode</small><strong id="scada-mode">AUTO</strong></div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="workspace-statusbar">
+        <span><i class="quality-dot good"></i><span id="status-summary">8 instances · 13 connections</span></span>
+        <span id="cursor-position">Grid 20 px</span>
+        <span class="editor-only">Connect an output pin to a block input · changes rebuild .fbdbin</span>
+        <span class="simulate-only">Select two compatible ports to connect them · 100 ms deterministic cycle</span>
+      </div>
+    </main>
+
+    <aside class="right-panel">
+      <section class="inspector-view editor-only">
+        <div class="inspector-header"><div><p class="eyebrow">INSPECTOR</p><h2 id="inspector-title">Pump controller</h2></div><button type="button" class="quiet-icon" id="delete-selection" title="Delete selected item">⌫</button></div>
+        <div id="inspector-content"></div>
+      </section>
+
+      <section class="inspector-view simulate-only">
+        <div class="inspector-header"><div><p class="eyebrow">SELECTION</p><h2 id="topology-inspector-title">Saturn PLC</h2></div><button type="button" class="quiet-icon" id="delete-topology-selection" title="Delete selected item">⌫</button></div>
+        <div id="topology-inspector-content"></div>
+      </section>
+
+      <section class="inspector-view simulate-only plant-model-panel">
+        <div class="inspector-header"><div><p class="eyebrow">PLANT MODEL</p><h2>Live simulation</h2></div><span class="tiny-badge good" id="simulation-badge">RUNNING</span></div>
+        <div class="metric-hero"><span>Pressure</span><strong><span id="sim-pressure">—</span><small> bar</small></strong><div class="metric-bar"><i id="pressure-bar"></i></div></div>
+        <div class="control-stack">
+          <label class="range-control"><span><b>Demand / leak</b><output id="demand-output">42%</output></span><input id="demand" type="range" min="0" max="100" value="42"></label>
+          <label class="switch-control"><span><b>Automatic mode</b><small>Host-authorized input</small></span><input id="auto-mode" type="checkbox" checked><i></i></label>
+          <label class="switch-control danger"><span><b>Emergency stop</b><small>Safety contact DI1</small></span><input id="emergency-stop" type="checkbox"><i></i></label>
+          <label class="range-control"><span><b>Reservoir level</b><output id="level-output">72%</output></span><input id="reservoir-level" type="range" min="0" max="100" value="72"></label>
+          <label class="switch-control"><span><b>P-101 feedback</b><small>Lead pump motor contact</small></span><input id="follow-feedback-1" type="checkbox" checked><i></i></label>
+          <label class="switch-control"><span><b>P-102 feedback</b><small>Lag pump motor contact</small></span><input id="follow-feedback-2" type="checkbox" checked><i></i></label>
+          <label class="select-control"><span><b>Sensor quality</b><small>Propagates across the cable</small></span><select id="pressure-quality"><option value="good">Good</option><option value="stale">Stale</option><option value="bad">Bad</option></select></label>
+        </div>
+        <button type="button" class="secondary-action" id="inject-pressure">Inject low pressure</button>
+        <div class="runtime-stats"><div><span>Cycle</span><strong id="cycle-count">0</strong></div><div><span>Seed</span><strong>0</strong></div><div><span>ABI</span><strong>v1</strong></div></div>
+      </section>
+
+      <section class="inspector-view scada-only scada-panel">
+        <div class="inspector-header"><div><p class="eyebrow">OPERATIONS</p><h2>Station status</h2></div><span class="tiny-badge good">ONLINE</span></div>
+        <div class="scada-kpis three">
+          <div><span>PT-101</span><strong><span id="kpi-pressure">—</span><small> bar</small></strong><em id="kpi-quality">GOOD</em></div>
+          <div><span>P-101 · LEAD</span><strong id="kpi-pump1">OFF</strong><em id="kpi-feedback1">FEEDBACK OK</em></div>
+          <div><span>P-102 · LAG</span><strong id="kpi-pump2">OFF</strong><em id="kpi-feedback2">FEEDBACK OK</em></div>
+        </div>
+        <div class="trend-card">
+          <div><strong>Pressure trend</strong><span>Last 60 s</span></div>
+          <svg id="trend-chart" viewBox="0 0 320 130" preserveAspectRatio="none" aria-label="Pressure trend">
+            <g class="trend-grid"><path d="M0 25H320M0 65H320M0 105H320"/><path d="M40 0V130M120 0V130M200 0V130M280 0V130"/></g>
+            <path id="trend-area" class="trend-area" d=""></path>
+            <polyline id="trend-line" class="trend-line" points=""></polyline>
+          </svg>
+          <div class="trend-scale"><span>0 bar</span><span>5 bar</span></div>
+        </div>
+        <div class="alarm-header"><strong>Events &amp; alarms</strong><button type="button" id="ack-alarms">Acknowledge all</button></div>
+        <ul id="alarm-list" class="alarm-list"></ul>
+        <div class="operator-actions">
+          <button type="button" id="scada-auto"><span>A</span> Toggle auto</button>
+          <button type="button" class="danger" id="scada-stop"><span>!</span> Emergency stop</button>
+        </div>
+        <div class="hmi-transfer-card">
+          <div><p class="eyebrow">CONTROLLER HMI</p><strong>SCADA projection</strong><small>Transfer compatible widgets to the 320×240 Saturn display.</small></div>
+          <button type="button" id="project-to-hmi">Project to HMI</button>
+          <div id="hmi-compatibility-summary">6 compatible · 1 simplified · 2 software-only</div>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <dialog id="scenario-dialog" class="scenario-dialog">
+    <div class="dialog-heading"><div><p class="eyebrow">CONFORMANCE</p><h2>Artifact scenario suite</h2></div><button type="button" id="close-scenarios" aria-label="Close">×</button></div>
+    <div id="scenario-summary" class="scenario-summary">Run conformance checks against the same Saturn .fbdbin artifact.</div>
+    <div id="scenario-results" class="scenario-results"></div>
+  </dialog>
+
+  <dialog id="passport-dialog" class="scenario-dialog passport-dialog">
+    <div class="dialog-heading"><div><p class="eyebrow">DEVICE PASSPORT · REGISTRY PACKAGE</p><h2 id="passport-title">—</h2></div><button type="button" id="close-passport" aria-label="Close">×</button></div>
+    <div id="passport-content" class="passport-content"></div>
+  </dialog>
+
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+  <input id="project-file" type="file" accept="application/json,.json" hidden>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>

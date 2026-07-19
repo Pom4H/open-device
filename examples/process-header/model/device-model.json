@@ -1,0 +1,34 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["compose", "simulate"],
+  "ports": [
+    {
+      "id": "inlet-a",
+      "title": "Inlet A",
+      "direction": "input",
+      "domain": "process",
+      "physical": { "medium": "water", "kind": "pipe" }
+    },
+    {
+      "id": "inlet-b",
+      "title": "Inlet B",
+      "direction": "input",
+      "domain": "process",
+      "physical": { "medium": "water", "kind": "pipe" }
+    },
+    {
+      "id": "outlet-a",
+      "title": "Outlet A",
+      "direction": "output",
+      "domain": "process",
+      "physical": { "medium": "water", "kind": "pipe" }
+    },
+    {
+      "id": "outlet-b",
+      "title": "Outlet B",
+      "direction": "output",
+      "domain": "process",
+      "physical": { "medium": "water", "kind": "pipe" }
+    }
+  ]
+}

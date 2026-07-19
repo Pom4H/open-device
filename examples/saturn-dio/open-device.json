@@ -1,0 +1,51 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/open-device-package.schema.json",
+  "manifestVersion": "0.1",
+  "id": "https://devices.open-device.dev/saturn/saturn-dio",
+  "version": "0.1.0",
+  "kind": "physical-device",
+  "name": "saturn-dio",
+  "title": "Saturn-DIO expansion module",
+  "description": "RS-485 discrete expansion module with 8 dry-contact inputs and 4 relay outputs, polled by a Saturn controller over Modbus RTU.",
+  "vendor": {
+    "name": "Open Device Saturn profile",
+    "url": "https://github.com/Pom4H/open-device"
+  },
+  "license": "Apache-2.0",
+  "model": {
+    "href": "./model/device-model.json",
+    "mediaType": "application/json"
+  },
+  "views": [
+    {
+      "id": "front-panel",
+      "role": "front-panel",
+      "entrypoint": {
+        "href": "./views/device.svg",
+        "mediaType": "image/svg+xml"
+      }
+    }
+  ],
+  "extensions": {
+    "https://open-device.dev/extensions/topology-node": {
+      "view": "front-panel",
+      "width": 320,
+      "height": 220,
+      "ports": {
+        "do1": { "x": 45, "y": 10, "side": "top", "signal": "digital" },
+        "do2": { "x": 87, "y": 10, "side": "top", "signal": "digital" },
+        "do3": { "x": 129, "y": 10, "side": "top", "signal": "digital" },
+        "do4": { "x": 171, "y": 10, "side": "top", "signal": "digital" },
+        "rs485": { "x": 52, "y": 188, "side": "bottom", "signal": "network" },
+        "di1": { "x": 97, "y": 188, "side": "bottom", "signal": "digital" },
+        "di2": { "x": 124, "y": 188, "side": "bottom", "signal": "digital" },
+        "di3": { "x": 150, "y": 188, "side": "bottom", "signal": "digital" },
+        "di4": { "x": 177, "y": 188, "side": "bottom", "signal": "digital" },
+        "di5": { "x": 203, "y": 188, "side": "bottom", "signal": "digital" },
+        "di6": { "x": 230, "y": 188, "side": "bottom", "signal": "digital" },
+        "di7": { "x": 256, "y": 188, "side": "bottom", "signal": "digital" },
+        "di8": { "x": 283, "y": 188, "side": "bottom", "signal": "digital" }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["control", "simulate"],
+  "ports": [
+    { "id": "open-command", "title": "Open command", "direction": "input", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "digital-input" } },
+    { "id": "close-command", "title": "Close command", "direction": "input", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "digital-input" } },
+    { "id": "opened", "title": "Opened limit switch", "direction": "output", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "dry-contact" } },
+    { "id": "closed", "title": "Closed limit switch", "direction": "output", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "dry-contact" } },
+    { "id": "process-in", "title": "Process inlet", "direction": "input", "domain": "process", "physical": { "medium": "water", "kind": "pipe", "range": "DN80 · PN16" } },
+    { "id": "process-out", "title": "Process outlet", "direction": "output", "domain": "process", "physical": { "medium": "water", "kind": "pipe", "range": "DN80 · PN16" } }
+  ],
+  "parameters": [
+    { "id": "travel-time", "title": "Full travel time", "dataType": "number", "unit": "s", "minimum": 5, "maximum": 120, "default": 18, "retained": true }
+  ]
+}

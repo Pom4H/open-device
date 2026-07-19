@@ -2,7 +2,7 @@
 
 Status: draft architecture for v0.1.
 
-## System contex
+## System context
 
 ```mermaid
 flowchart TB
@@ -45,7 +45,7 @@ may be allowed in development mode.
 An immutable, self-describing set of files. All executable and externally referenced
 artifacts have integrity metadata. A released version must never be replaced in place.
 
-### Artifac
+### Artifact
 
 A typed file referenced by the manifest: JSON model, HTML entrypoint, stylesheet,
 Wasm module, target program, scenario, image, or evidence document.
@@ -64,7 +64,7 @@ or load target program data from another artifact.
 ### Instance
 
 A consumer-owned binding of a model to a real or simulated device. It adds instance
-ID, topology, connection configuration, current state, permissions, and deploymen
+ID, topology, connection configuration, current state, permissions, and deployment
 history.
 
 ### Adapter
@@ -74,7 +74,7 @@ cloud, controller toolchain, or deployment system.
 
 ### Scenario and evidence
 
-A scenario is portable input/time/expectation data. Evidence is the immutable resul
+A scenario is portable input/time/expectation data. Evidence is the immutable result
 of running scenarios against identified artifacts.
 
 ## Package kinds
@@ -93,14 +93,14 @@ declared dependencies and typed port connections, not by merging manifests.
 
 ## Layer boundaries
 
-```tex
+```text
 spec
   JSON vocabulary, schemas, media-type conventions
 
 core
   fetch, resolve, validate, integrity, dependency graph
 
-view-hos
+view-host
   sandbox, state delivery, intent protocol, theme tokens
 
 runtime
@@ -116,7 +116,7 @@ adapters (outside or optional packages)
   protocols, deployment, SCADA, cloud, authorization
 ```
 
-Dependencies point downward. `spec` has no runtime dependency. `core` does not impor
+Dependencies point downward. `spec` has no runtime dependency. `core` does not import
 profiles. Profiles register through explicit extension points.
 
 ## End-to-end lifecycle
@@ -130,7 +130,7 @@ sequenceDiagram
     participant Consumer
 
     Author->>CLI: validate source package
-    CLI->>Runtime: execute scenarios against target artifac
+    CLI->>Runtime: execute scenarios against target artifact
     Runtime-->>CLI: outputs, snapshots, diagnostics
     CLI->>CLI: create digest-bound evidence
     CLI->>CLI: pack immutable release
@@ -147,7 +147,7 @@ absent from this sequence.
 
 The first vertical slice uses a pump controller and the Saturn FBD profile:
 
-```tex
+```text
 semantic rules + signal roles
         ↓
 engineering checks
@@ -166,7 +166,7 @@ maps, controller HMI, and deployment outside the neutral core.
 
 ## Trust boundaries
 
-The resolver, view host, and runtime host process untrusted vendor content. They mus
+The resolver, view host, and runtime host process untrusted vendor content. They must
 enforce the controls in [Security model](security-model.md). A valid schema is not a
 trust decision, and a vendor-authored view is never implicitly authorized to control
 hardware.

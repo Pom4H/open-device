@@ -1,6 +1,6 @@
 # Roadmap
 
-The roadmap is outcome-based. Dates and package boundaries may change as the firs
+The roadmap is outcome-based. Dates and package boundaries may change as the first
 vertical slice teaches us where the real interfaces belong.
 
 ## Milestone 0 — foundation
@@ -10,9 +10,9 @@ Goal: make architectural intent explicit enough for parallel development.
 - [x] repository structure and project boundaries;
 - [x] draft package, view, runtime, scenario, evidence, and registry documents;
 - [x] initial ADRs;
-- [ ] machine-readable package and scenario schemas;
+- [x] machine-readable package, model, scenario, and evidence schemas;
 - [ ] normative example vocabulary;
-- [ ] automated documentation and schema checks.
+- [x] automated documentation and schema checks (`bun run check:docs`, `bun test`).
 
 Exit criterion: a contributor can explain the package lifecycle and identify which
 changes require an ADR.
@@ -43,6 +43,11 @@ Goal: validate connections between two device packages.
 
 Exit criterion: a user can connect two compatible ports and receive useful reasons for
 every rejected connection.
+
+Current reference slice: the Playground resolves a static six-package equipment
+catalog, creates multiple instances per definition, composes signal and water-process
+connections through reusable headers, and saves the consumer-owned topology as an
+experimental project file.
 
 ## Milestone 3 — executable logic
 

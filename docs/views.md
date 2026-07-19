@@ -23,7 +23,7 @@ Ejected code no longer receives automatic vendor view updates.
 
 ## View files
 
-```tex
+```text
 views/front-panel/
 ├── index.html
 ├── styles.css
@@ -32,7 +32,7 @@ views/front-panel/
 ```
 
 The HTML must remain useful without a JavaScript framework. An optional ES module may
-map host messages to DOM state and emit user intents. Logical device behavior does no
+map host messages to DOM state and emit user intents. Logical device behavior does not
 belong in `view.mjs`; it belongs in the declared runtime.
 
 ## Sandbox baseline
@@ -54,8 +54,10 @@ denied unless a reviewed capability explicitly permits an origin.
 ## Message protocol
 
 Messages are structured-clone-compatible objects sent with `postMessage`. Every
-session uses a random channel ID supplied by the host. Both sides validate protocol,
-channel, source window, message shape, size, and sequence.
+session uses a random channel ID supplied by the host. The host delivers the channel
+to the view through the iframe `name` attribute so the readiness message can already
+carry it. Both sides validate protocol, channel, source window, message shape, size,
+and sequence.
 
 ### Host initialization
 
@@ -102,7 +104,7 @@ channel, source window, message shape, size, and sequence.
 }
 ```
 
-### User inten
+### User intent
 
 ```json
 {
@@ -120,7 +122,7 @@ authorize it, send a real command through an adapter, and wait for observed tele
 The view receives explicit status messages; it must not optimistically rewrite source
 state as though equipment already changed.
 
-## Theme contrac
+## Theme contract
 
 The host may supply a small set of CSS custom properties through generated wrapper
 CSS or the initialization message:

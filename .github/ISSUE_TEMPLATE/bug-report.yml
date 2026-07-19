@@ -1,4 +1,4 @@
-name: Bug repor
+name: Bug report
 description: Report incorrect documentation, validation, runtime, view-host, or CLI behavior
 title: "fix: "
 labels:
@@ -19,14 +19,14 @@ body:
       render: shell
     validations:
       required: true
-  - type: inpu
-    id: commi
+  - type: input
+    id: commit
     attributes:
-      label: Version or commi
+      label: Version or commit
       placeholder: commit SHA or package version
     validations:
       required: true
-  - type: inpu
+  - type: input
     id: bun
     attributes:
       label: Bun version
@@ -36,7 +36,7 @@ body:
     attributes:
       label: Diagnostics
       description: Include digests and package IDs, but no credentials or customer data.
-      render: tex
+      render: text
   - type: checkboxes
     id: security
     attributes:

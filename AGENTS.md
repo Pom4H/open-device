@@ -16,7 +16,9 @@ infrastructure, and authorization must not enter the neutral core.
 
 ## Status
 
-The repository is in the documentation-first, pre-alpha phase. Do not treat draf
+The repository is pre-alpha. The first vertical slice is implemented (manifest
+validation, sandboxed view host, scalar Wasm runtime, scenario runner, evidence,
+CLI check/test/pack, pump-controller example, playground). Do not treat draft
 documents as a stable public standard. Prefer a narrow end-to-end implementation
 over speculative completeness.
 
@@ -37,12 +39,12 @@ or registry semantics requires an ADR.
 
 ## Intended monorepo
 
-```tex
+```text
 apps/website          explanatory landing page and public documentation
 apps/playground       browser package inspector and simulator
 packages/spec         schemas and normative examples
 packages/core         resolver, validation, integrity, dependency graph
-packages/view-host    sandboxed browser presentation hos
+packages/view-host    sandboxed browser presentation host
 packages/runtime      WebAssembly host and ABI bindings
 packages/scenario     scenario runner and evidence generation
 packages/cli          developer workflow
@@ -67,8 +69,8 @@ bun install
 bun run dev
 bun run build
 bun run typecheck
-bun run tes
-bun run lin
+bun run test
+bun run lint
 ```
 
 ## Architectural invariants
@@ -77,7 +79,7 @@ bun run lin
    consumer systems own addresses, credentials, current state, and deployment state.
 2. **Core stays vendor-neutral.** Saturn, LanMon, Modbus, and other integrations live
    in profiles or adapters.
-3. **Views do not command hardware directly.** A view emits an intent. The hos
+3. **Views do not command hardware directly.** A view emits an intent. The host
    applies authorization, confirmation, audit, and protocol behavior.
 4. **Untrusted views are sandboxed.** Dependency-mode HTML runs in a restricted iframe
    and communicates through the documented message protocol.
@@ -95,7 +97,7 @@ bun run lin
     controller credentials belong to an audited platform adapter.
 11. **Imported fidelity has multiple axes.** Runtime compatibility, source
     recoverability, and semantic confidence must not be collapsed into one flag.
-12. **Immutable release URLs and integrity are mandatory.** Mutable aliases may exis
+12. **Immutable release URLs and integrity are mandatory.** Mutable aliases may exist
     only as discovery conveniences.
 
 ## Web standards policy

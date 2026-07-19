@@ -1,0 +1,11 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["measure", "simulate"],
+  "ports": [
+    { "id": "level", "title": "Level output", "direction": "output", "domain": "signal", "signal": { "dataType": "number", "unit": "%", "minimum": 0, "maximum": 100 }, "physical": { "medium": "electrical", "kind": "analog-current", "range": "4-20 mA" } },
+    { "id": "process", "title": "Submersible probe", "direction": "input", "domain": "process", "physical": { "medium": "water", "kind": "probe", "range": "0-10 m H₂O" } }
+  ],
+  "parameters": [
+    { "id": "range", "title": "Measuring range", "dataType": "number", "unit": "m", "minimum": 1, "maximum": 100, "default": 10, "retained": true }
+  ]
+}

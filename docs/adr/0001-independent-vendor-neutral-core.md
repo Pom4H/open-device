@@ -3,14 +3,14 @@
 - Status: accepted
 - Date: 2026-07-18
 
-## Contex
+## Context
 
 The initial ideas were validated while building LanMon and Saturn controller tooling.
 Those products provide a strong real-world use case but include proprietary cloud,
 deployment, protocol, and hardware integration concerns.
 
 If the package format is shaped as an internal LanMon feature, other manufacturers and
-SCADA developers must accept product-specific assumptions and ownership. The projec
+SCADA developers must accept product-specific assumptions and ownership. The project
 would not become credible shared infrastructure.
 
 ## Decision
@@ -41,7 +41,7 @@ Target-specific support lives in profiles and cannot be imported by the neutral 
 Rejected because product boundaries would dominate the model and discourage neutral
 adoption.
 
-### Define only a Saturn package forma
+### Define only a Saturn package format
 
 Rejected as the project goal is broader, while Saturn can be represented accurately by
 a profile.

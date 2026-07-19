@@ -1,0 +1,85 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["control", "display", "programmable", "simulate"],
+  "ports": [
+    {
+      "id": "rs485",
+      "title": "X6 · RS-485 fieldbus (Modbus RTU master)",
+      "direction": "bidirectional",
+      "domain": "network",
+      "physical": { "medium": "electrical", "kind": "rs-485" }
+    },
+    {
+      "id": "do1",
+      "title": "P-101 command",
+      "direction": "output",
+      "domain": "signal",
+      "signal": { "dataType": "boolean" },
+      "physical": { "medium": "electrical", "kind": "digital-output" }
+    },
+    {
+      "id": "do2",
+      "title": "Common alarm",
+      "direction": "output",
+      "domain": "signal",
+      "signal": { "dataType": "boolean" },
+      "physical": { "medium": "electrical", "kind": "digital-output" }
+    },
+    {
+      "id": "do3",
+      "title": "P-102 command",
+      "direction": "output",
+      "domain": "signal",
+      "signal": { "dataType": "boolean" },
+      "physical": { "medium": "electrical", "kind": "digital-output" }
+    },
+    {
+      "id": "do4",
+      "title": "Suction valve command",
+      "direction": "output",
+      "domain": "signal",
+      "signal": { "dataType": "boolean" },
+      "physical": { "medium": "electrical", "kind": "digital-output" }
+    },
+    {
+      "id": "di1",
+      "title": "Emergency stop",
+      "direction": "input",
+      "domain": "signal",
+      "signal": { "dataType": "boolean" },
+      "physical": { "medium": "electrical", "kind": "digital-input" }
+    },
+    {
+      "id": "di2",
+      "title": "P-101 feedback",
+      "direction": "input",
+      "domain": "signal",
+      "signal": { "dataType": "boolean" },
+      "physical": { "medium": "electrical", "kind": "digital-input" }
+    },
+    {
+      "id": "di4",
+      "title": "P-102 feedback",
+      "direction": "input",
+      "domain": "signal",
+      "signal": { "dataType": "boolean" },
+      "physical": { "medium": "electrical", "kind": "digital-input" }
+    },
+    {
+      "id": "di5",
+      "title": "Tank low level",
+      "direction": "input",
+      "domain": "signal",
+      "signal": { "dataType": "boolean" },
+      "physical": { "medium": "electrical", "kind": "digital-input" }
+    },
+    {
+      "id": "ai1",
+      "title": "Header pressure",
+      "direction": "input",
+      "domain": "signal",
+      "signal": { "dataType": "number", "unit": "bar", "minimum": 0, "maximum": 10 },
+      "physical": { "medium": "electrical", "kind": "analog-current", "range": "4-20 mA" }
+    }
+  ]
+}

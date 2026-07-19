@@ -27,7 +27,7 @@ It does not provide:
 
 The canonical package may live on the vendor's HTTPS origin:
 
-```tex
+```text
 https://devices.vendor.example/products/kio-2ms/1.4.0/open-device.json
 ```
 
@@ -56,7 +56,7 @@ GitHub ownership alone is not sufficient to claim a manufacturer's namespace.
 
 ## Publishing flow
 
-```tex
+```text
 device login                 optional registry authentication
 device check                 structural and engineering validation
 device test                  scenarios against exact artifacts

@@ -1,0 +1,120 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["sense", "control"],
+  "ports": [
+    {
+      "id": "pressure",
+      "title": "Pressure input",
+      "direction": "input",
+      "domain": "signal",
+      "signal": {
+        "dataType": "number",
+        "unit": "bar",
+        "minimum": 0,
+        "maximum": 10
+      },
+      "physical": {
+        "medium": "electrical",
+        "kind": "analog-current",
+        "range": "4-20 mA"
+      }
+    },
+    {
+      "id": "auto-mode",
+      "title": "Automatic mode permission",
+      "direction": "input",
+      "domain": "signal",
+      "signal": {
+        "dataType": "boolean"
+      }
+    },
+    {
+      "id": "emergency-stop",
+      "title": "Emergency stop",
+      "direction": "input",
+      "domain": "signal",
+      "signal": {
+        "dataType": "boolean"
+      },
+      "physical": {
+        "medium": "electrical",
+        "kind": "digital-input"
+      }
+    },
+    {
+      "id": "pump-feedback",
+      "title": "Pump running feedback",
+      "direction": "input",
+      "domain": "signal",
+      "signal": {
+        "dataType": "boolean"
+      },
+      "physical": {
+        "medium": "electrical",
+        "kind": "digital-input"
+      }
+    },
+    {
+      "id": "pump-command",
+      "title": "Pump command",
+      "direction": "output",
+      "domain": "signal",
+      "signal": {
+        "dataType": "boolean"
+      },
+      "physical": {
+        "medium": "electrical",
+        "kind": "digital-output"
+      }
+    },
+    {
+      "id": "alarm",
+      "title": "Alarm",
+      "direction": "output",
+      "domain": "signal",
+      "signal": {
+        "dataType": "boolean"
+      }
+    }
+  ],
+  "parameters": [
+    {
+      "id": "setpoint-low",
+      "title": "Start pressure threshold",
+      "dataType": "number",
+      "unit": "bar",
+      "minimum": 0,
+      "maximum": 10,
+      "default": 1.5,
+      "retained": true
+    },
+    {
+      "id": "setpoint-high",
+      "title": "Stop pressure threshold",
+      "dataType": "number",
+      "unit": "bar",
+      "minimum": 0,
+      "maximum": 10,
+      "default": 3,
+      "retained": true
+    },
+    {
+      "id": "start-delay-ms",
+      "title": "Pump start delay",
+      "dataType": "number",
+      "unit": "ms",
+      "minimum": 0,
+      "default": 2000,
+      "retained": true
+    },
+    {
+      "id": "feedback-timeout-ms",
+      "title": "Feedback alarm timeout",
+      "dataType": "number",
+      "unit": "ms",
+      "minimum": 0,
+      "default": 3000,
+      "retained": true
+    }
+  ]
+}

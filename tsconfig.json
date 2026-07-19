@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["bun"]
+  },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "packages/*/bin/**/*.ts",
+    "packages/*/test/**/*.ts",
+    "profiles/*/src/**/*.ts",
+    "profiles/*/test/**/*.ts",
+    "apps/playground/src/**/*.ts",
+    "apps/playground/server.ts",
+    "scripts/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "examples/pump-controller/logic"
+  ]
+}

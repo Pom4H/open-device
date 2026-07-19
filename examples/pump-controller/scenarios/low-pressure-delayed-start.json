@@ -1,0 +1,29 @@
+{
+  "scenarioVersion": "0.1",
+  "id": "low-pressure-delayed-start",
+  "title": "Low pressure starts the pump only after the configured delay",
+  "target": "controller",
+  "reset": "cold",
+  "steps": [
+    {
+      "write": {
+        "pressure": { "value": 1.0, "quality": "good" },
+        "auto-mode": { "value": true, "quality": "good" },
+        "emergency-stop": { "value": false, "quality": "good" },
+        "pump-feedback": { "value": false, "quality": "good" }
+      }
+    },
+    { "tick": { "durationMs": 1900, "periodMs": 100 } },
+    { "expect": { "pump-command": { "equals": false } } },
+    { "tick": { "durationMs": 200, "periodMs": 100 } },
+    { "expect": { "pump-command": { "equals": true } } },
+    { "write": { "pump-feedback": { "value": true, "quality": "good" } } },
+    { "tick": { "durationMs": 500, "periodMs": 100 } },
+    {
+      "expect": {
+        "pump-command": { "equals": true },
+        "alarm": { "equals": false }
+      }
+    }
+  ]
+}

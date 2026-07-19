@@ -19,7 +19,7 @@ industrial hardware without pretending that hardware is just another REST API.
 
 A vendor publishes one versioned package:
 
-```tex
+```text
 device description
 ├── identity and capabilities
 ├── physical and logical ports
@@ -34,6 +34,13 @@ device description
 Consumers can use the same package in a catalog, documentation site, SCADA editor,
 simulator, cabinet configurator, test runner, or deployment adapter.
 
+The product direction is a registry-backed engineering workspace: roughly the role
+GNS3 plays for networks, but for controllers, instruments, drives, pumps, vessels,
+signals, power, and process connections. Users discover reusable equipment
+definitions, create site-owned instances on a topology, connect compatible ports,
+run deterministic behavior and plant models, and observe the same project through
+SCADA/HMI views.
+
 ```html
 <open-device
   package="https://devices.example.com/pump-controller/1.0.0/open-device.json"
@@ -43,15 +50,16 @@ simulator, cabinet configurator, test runner, or deployment adapter.
 ```sh
 device add https://devices.example.com/pump-controller/1.0.0/open-device.json
 device dev
-device tes
+device test
 device pack
 device publish
 ```
 
-The commands and custom element above describe the intended developer experience;
-they are not implemented yet.
+`device check`, `device test`, and `device pack` are implemented; `add`, `dev`,
+`publish`, and the custom element describe the intended developer experience and
+are not implemented yet.
 
-## Web-native by defaul
+## Web-native by default
 
 Open Device prefers standards that work directly on the web:
 
@@ -64,14 +72,14 @@ Open Device prefers standards that work directly on the web:
 - ES modules and Web Components at framework boundaries;
 - vendor-hosted static packages with optional public indexes.
 
-React, Vue, an npm registry, a specific cloud, and a specific controller are no
+React, Vue, an npm registry, a specific cloud, and a specific controller are not
 part of the package contract.
 
 ## Two executable models
 
 Logical behavior may be distributed in either form:
 
-```tex
+```text
 standalone module                 shared engine
 -----------------                -------------------------
 device-runtime.wasm              program.fbdbin
@@ -102,7 +110,7 @@ consumer platform and its audited adapters.
 
 ## Repository map
 
-```tex
+```text
 open-device/
 ├── apps/
 │   ├── website/          # public landing page and documentation
@@ -117,7 +125,10 @@ open-device/
 ├── profiles/
 │   └── saturn-fbd/       # first target profile: .fbdbin + shared runtime
 ├── examples/
-│   └── pump-controller/  # first end-to-end package
+│   ├── catalog/          # experimental static equipment index
+│   ├── saturn-plc/       # physical controller definition
+│   ├── centrifugal-pump/ # reusable rotating-equipment definition
+│   └── pump-controller/  # executable control-program package
 └── docs/
     └── adr/              # architectural decisions
 ```
@@ -131,13 +142,13 @@ implementation.
 Open Device defines portable descriptions and tooling. Product integrations stay
 outside the neutral core:
 
-```tex
+```text
 Open Device                         Product adapter
 -------------------------------     -------------------------------
 manifest and schemas                authentication and authorization
 port and signal types               live protocol drivers
 HTML/CSS view protocol              telemetry storage
-Wasm runtime ABI                    controller deploymen
+Wasm runtime ABI                    controller deployment
 scenario and evidence formats       activation and rollback
 package resolution                  product-specific editors
 ```
@@ -147,18 +158,32 @@ core. LanMon Cloud is expected to be an early consumer, not the owner of the for
 
 ## Current plan
 
-The first useful vertical slice is deliberately small:
+The first useful vertical slice is deliberately small — and implemented:
 
-1. validate `open-device.json`;
-2. render a sandboxed browser view;
-3. expose typed ports and state;
-4. execute one logical device through WebAssembly;
-5. run the same declarative scenarios against the published artifact;
-6. produce evidence bound to package and runtime digests;
-7. demonstrate the flow with a pump controller package.
+1. validate `open-device.json` — `device check`, four JSON Schemas, source/release profiles;
+2. render a sandboxed browser view — `@open-device/view-host`, `apps/playground`;
+3. expose typed ports and state — scalar bindings plus quality-carrying value frames;
+4. execute one logical device through WebAssembly — `@open-device/runtime`, ADR-0006;
+5. run the same declarative scenarios against the published artifact — `device test`;
+6. produce evidence bound to package and runtime digests — `@open-device/scenario`;
+7. demonstrate the flow with a pump controller package — `examples/pump-controller`,
+   7/7 scenarios passing against the packaged Wasm in both Bun and the browser;
+8. resolve a static equipment catalog into a topology whose scene instances keep
+   canonical package identity separate from local position, wiring, and state.
+
+Try it:
+
+```sh
+bun install
+bun run --cwd examples/pump-controller build   # AssemblyScript → controller.wasm
+bun packages/cli/bin/device.ts test examples/pump-controller
+bun apps/playground/server.ts                  # http://localhost:8787
+```
 
 The hosted registry, signing, federation, and broad device taxonomy come after the
-package experience is proven locally.
+static catalog and package experience are proven with real consumers.
+Evidence documents are currently unsigned local regression records: they identify
+exactly what was executed but do not prove the run to a third party.
 
 ## Contributing
 

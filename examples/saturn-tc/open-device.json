@@ -1,0 +1,45 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/open-device-package.schema.json",
+  "manifestVersion": "0.1",
+  "id": "https://devices.open-device.dev/saturn/saturn-tc",
+  "version": "0.1.0",
+  "kind": "physical-device",
+  "name": "saturn-tc",
+  "title": "Saturn-TC temperature module",
+  "description": "RS-485 temperature expansion module with 6 Pt1000/NTC channels for heating and hot-water circuits.",
+  "vendor": {
+    "name": "Open Device Saturn profile",
+    "url": "https://github.com/Pom4H/open-device"
+  },
+  "license": "Apache-2.0",
+  "model": {
+    "href": "./model/device-model.json",
+    "mediaType": "application/json"
+  },
+  "views": [
+    {
+      "id": "front-panel",
+      "role": "front-panel",
+      "entrypoint": {
+        "href": "./views/device.svg",
+        "mediaType": "image/svg+xml"
+      }
+    }
+  ],
+  "extensions": {
+    "https://open-device.dev/extensions/topology-node": {
+      "view": "front-panel",
+      "width": 320,
+      "height": 220,
+      "ports": {
+        "rs485": { "x": 52, "y": 188, "side": "bottom", "signal": "network" },
+        "t1": { "x": 102, "y": 188, "side": "bottom", "signal": "analog" },
+        "t2": { "x": 137, "y": 188, "side": "bottom", "signal": "analog" },
+        "t3": { "x": 172, "y": 188, "side": "bottom", "signal": "analog" },
+        "t4": { "x": 207, "y": 188, "side": "bottom", "signal": "analog" },
+        "t5": { "x": 242, "y": 188, "side": "bottom", "signal": "analog" },
+        "t6": { "x": 277, "y": 188, "side": "bottom", "signal": "analog" }
+      }
+    }
+  }
+}

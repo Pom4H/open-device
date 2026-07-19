@@ -99,7 +99,7 @@ Promotion is a consumer decision. A public registry listing does not imply `oper
 ## Signatures
 
 Digest pinning is required first. Package signing, transparency records, and vendor key
-rotation need a separate ADR. A signature will attest to exact bytes and identity; i
+rotation need a separate ADR. A signature will attest to exact bytes and identity; it
 will not attest to safety or correctness.
 
 ## Vulnerability reporting

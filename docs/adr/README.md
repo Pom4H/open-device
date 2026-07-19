@@ -20,6 +20,7 @@ the old one.
 - [ADR-0003: Separate program data from runtime engines](0003-program-runtime-separation.md)
 - [ADR-0004: Test released artifacts and bind evidence to digests](0004-artifact-scenarios-and-evidence.md)
 - [ADR-0005: Use Bun for monorepo tooling](0005-bun-toolchain.md)
+- [ADR-0006: Scalar core Wasm encoding for cyclic control v0.1](0006-scalar-core-wasm-abi.md)
 
 ## Template
 
@@ -29,7 +30,7 @@ the old one.
 - Status: proposed
 - Date: YYYY-MM-DD
 
-## Contex
+## Context
 
 ## Decision
 

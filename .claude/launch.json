@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "playground",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["apps/playground/server.ts"],
+      "port": 8787,
+      "autoPort": true
+    }
+  ]
+}

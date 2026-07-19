@@ -1,0 +1,45 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/open-device-package.schema.json",
+  "manifestVersion": "0.1",
+  "id": "https://devices.open-device.dev/saturn/saturn-aio",
+  "version": "0.1.0",
+  "kind": "physical-device",
+  "name": "saturn-aio",
+  "title": "Saturn-AIO expansion module",
+  "description": "RS-485 analog expansion module with 4 current/voltage inputs and 2 analog outputs for pressure, level and drive-speed loops.",
+  "vendor": {
+    "name": "Open Device Saturn profile",
+    "url": "https://github.com/Pom4H/open-device"
+  },
+  "license": "Apache-2.0",
+  "model": {
+    "href": "./model/device-model.json",
+    "mediaType": "application/json"
+  },
+  "views": [
+    {
+      "id": "front-panel",
+      "role": "front-panel",
+      "entrypoint": {
+        "href": "./views/device.svg",
+        "mediaType": "image/svg+xml"
+      }
+    }
+  ],
+  "extensions": {
+    "https://open-device.dev/extensions/topology-node": {
+      "view": "front-panel",
+      "width": 320,
+      "height": 220,
+      "ports": {
+        "ao1": { "x": 48, "y": 10, "side": "top", "signal": "analog" },
+        "ao2": { "x": 96, "y": 10, "side": "top", "signal": "analog" },
+        "rs485": { "x": 52, "y": 188, "side": "bottom", "signal": "network" },
+        "ai1": { "x": 104, "y": 188, "side": "bottom", "signal": "analog" },
+        "ai2": { "x": 144, "y": 188, "side": "bottom", "signal": "analog" },
+        "ai3": { "x": 184, "y": 188, "side": "bottom", "signal": "analog" },
+        "ai4": { "x": 224, "y": 188, "side": "bottom", "signal": "analog" }
+      }
+    }
+  }
+}

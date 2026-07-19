@@ -3,7 +3,7 @@
 - Status: accepted
 - Date: 2026-07-18
 
-## Contex
+## Context
 
 The project needs a package manager, workspace runner, TypeScript development runtime,
 test runner, and browser build path. Using multiple overlapping tools at the beginning
@@ -18,12 +18,12 @@ Use Bun for package installation, workspaces, TypeScript execution, tests, scrip
 and bundling where a bundle is required.
 
 - Workspaces are declared in the root `package.json`.
-- The lock file is `bun.lockb` for the currently selected Bun line; migration to a
-  newer Bun lock format requires a deliberate toolchain update.
+- The lock file is the text-based `bun.lock` (Bun ≥ 1.3); the pinned Bun version is
+  declared in the root `package.json` `packageManager` field.
 - Root commands use `bun install`, `bun run`, and `bun test`.
 - Do not add pnpm, npm, Yarn, Corepack, Vite, or a Node-specific task runner unless a
   later ADR demonstrates a requirement Bun cannot satisfy.
-- Browser-facing runtime code remains based on standard browser APIs and must no
+- Browser-facing runtime code remains based on standard browser APIs and must not
   depend on Bun APIs after build.
 
 ## Consequences
@@ -39,7 +39,7 @@ and bundling where a bundle is required.
 
 ### pnpm plus Node.js
 
-Rejected by project direction. It would add a second runtime and package-managemen
+Rejected by project direction. It would add a second runtime and package-management
 surface without helping the web package format itself.
 
 ### Bun plus Vite

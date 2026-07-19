@@ -1,0 +1,28 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["io-expansion", "simulate"],
+  "ports": [
+    {
+      "id": "rs485",
+      "title": "RS-485 fieldbus (Modbus RTU)",
+      "direction": "bidirectional",
+      "domain": "network",
+      "physical": { "medium": "electrical", "kind": "rs-485" }
+    },
+    { "id": "do1", "title": "Relay output DO1", "direction": "output", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "relay", "range": "250 VAC / 5 A" } },
+    { "id": "do2", "title": "Relay output DO2", "direction": "output", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "relay", "range": "250 VAC / 5 A" } },
+    { "id": "do3", "title": "Relay output DO3", "direction": "output", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "relay", "range": "250 VAC / 5 A" } },
+    { "id": "do4", "title": "Relay output DO4", "direction": "output", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "relay", "range": "250 VAC / 5 A" } },
+    { "id": "di1", "title": "Discrete input DI1", "direction": "input", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "dry-contact" } },
+    { "id": "di2", "title": "Discrete input DI2", "direction": "input", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "dry-contact" } },
+    { "id": "di3", "title": "Discrete input DI3", "direction": "input", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "dry-contact" } },
+    { "id": "di4", "title": "Discrete input DI4", "direction": "input", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "dry-contact" } },
+    { "id": "di5", "title": "Discrete input DI5", "direction": "input", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "dry-contact" } },
+    { "id": "di6", "title": "Discrete input DI6", "direction": "input", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "dry-contact" } },
+    { "id": "di7", "title": "Discrete input DI7", "direction": "input", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "dry-contact" } },
+    { "id": "di8", "title": "Discrete input DI8", "direction": "input", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "dry-contact" } }
+  ],
+  "parameters": [
+    { "id": "modbus-address", "title": "Modbus RTU address", "dataType": "integer", "minimum": 1, "maximum": 247, "default": 2, "retained": true }
+  ]
+}

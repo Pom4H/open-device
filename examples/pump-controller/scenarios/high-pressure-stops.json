@@ -1,0 +1,29 @@
+{
+  "scenarioVersion": "0.1",
+  "id": "high-pressure-stops",
+  "title": "High pressure resets demand and stops the pump",
+  "target": "controller",
+  "reset": "cold",
+  "steps": [
+    {
+      "write": {
+        "pressure": { "value": 1.0, "quality": "good" },
+        "auto-mode": { "value": true, "quality": "good" },
+        "emergency-stop": { "value": false, "quality": "good" },
+        "pump-feedback": { "value": false, "quality": "good" }
+      }
+    },
+    { "tick": { "durationMs": 2100, "periodMs": 100 } },
+    { "write": { "pump-feedback": { "value": true, "quality": "good" } } },
+    { "tick": { "durationMs": 200, "periodMs": 100 } },
+    { "expect": { "pump-command": { "equals": true } } },
+    { "write": { "pressure": { "value": 3.5, "quality": "good" } } },
+    { "tick": { "durationMs": 100, "periodMs": 100 } },
+    {
+      "expect": {
+        "pump-command": { "equals": false },
+        "alarm": { "equals": false }
+      }
+    }
+  ]
+}

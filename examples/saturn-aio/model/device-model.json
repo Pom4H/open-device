@@ -1,0 +1,22 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["io-expansion", "simulate"],
+  "ports": [
+    {
+      "id": "rs485",
+      "title": "RS-485 fieldbus (Modbus RTU)",
+      "direction": "bidirectional",
+      "domain": "network",
+      "physical": { "medium": "electrical", "kind": "rs-485" }
+    },
+    { "id": "ai1", "title": "Analog input AI1", "direction": "input", "domain": "signal", "signal": { "dataType": "number", "minimum": 0, "maximum": 100 }, "physical": { "medium": "electrical", "kind": "analog-current", "range": "4-20 mA / 0-10 V" } },
+    { "id": "ai2", "title": "Analog input AI2", "direction": "input", "domain": "signal", "signal": { "dataType": "number", "minimum": 0, "maximum": 100 }, "physical": { "medium": "electrical", "kind": "analog-current", "range": "4-20 mA / 0-10 V" } },
+    { "id": "ai3", "title": "Analog input AI3", "direction": "input", "domain": "signal", "signal": { "dataType": "number", "minimum": 0, "maximum": 100 }, "physical": { "medium": "electrical", "kind": "analog-current", "range": "4-20 mA / 0-10 V" } },
+    { "id": "ai4", "title": "Analog input AI4", "direction": "input", "domain": "signal", "signal": { "dataType": "number", "minimum": 0, "maximum": 100 }, "physical": { "medium": "electrical", "kind": "analog-current", "range": "4-20 mA / 0-10 V" } },
+    { "id": "ao1", "title": "Analog output AO1", "direction": "output", "domain": "signal", "signal": { "dataType": "number", "minimum": 0, "maximum": 100 }, "physical": { "medium": "electrical", "kind": "analog-current", "range": "4-20 mA / 0-10 V" } },
+    { "id": "ao2", "title": "Analog output AO2", "direction": "output", "domain": "signal", "signal": { "dataType": "number", "minimum": 0, "maximum": 100 }, "physical": { "medium": "electrical", "kind": "analog-current", "range": "4-20 mA / 0-10 V" } }
+  ],
+  "parameters": [
+    { "id": "modbus-address", "title": "Modbus RTU address", "dataType": "integer", "minimum": 1, "maximum": 247, "default": 3, "retained": true }
+  ]
+}

@@ -118,6 +118,13 @@
       "type": "string",
       "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
     },
+    "semanticVersionRange": {
+      "description": "Semver range for authoring convenience in source packages only.",
+      "type": "string",
+      "pattern": "^[\\^~><=| 0-9A-Za-z.*+-]+$",
+      "minLength": 1,
+      "maxLength": 256
+    },
     "integrity": {
       "type": "string",
       "pattern": "^sha256-[A-Za-z0-9+/]+={0,2}$"
@@ -209,6 +216,9 @@
             },
             "module": {
               "$ref": "#/$defs/artifact"
+            },
+            "bindings": {
+              "$ref": "#/$defs/logicBindings"
             }
           }
         },
@@ -238,10 +248,39 @@
             "runtime": {
               "type": "string",
               "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*#[A-Za-z0-9._-]+$"
+            },
+            "bindings": {
+              "$ref": "#/$defs/logicBindings"
             }
           }
         }
       ]
+    },
+    "logicBindings": {
+      "description": "Ordered port and parameter IDs. Array position is the numeric index used by the scalar core Wasm ABI.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inputs", "outputs"],
+      "properties": {
+        "inputs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/portId" }
+        },
+        "outputs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/portId" }
+        },
+        "params": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/portId" }
+        }
+      }
+    },
+    "portId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "minLength": 1,
+      "maxLength": 128
     },
     "scenarioReference": {
       "type": "object",
@@ -260,9 +299,10 @@
       }
     },
     "dependency": {
+      "description": "Source packages may use a semver range without integrity. The release profile additionally requires an exact version and a manifest digest; see validateManifest mode 'release'.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "version", "integrity"],
+      "required": ["id", "version"],
       "properties": {
         "id": {
           "type": "string",
@@ -270,7 +310,10 @@
           "pattern": "^https://"
         },
         "version": {
-          "$ref": "#/$defs/semanticVersion"
+          "oneOf": [
+            { "$ref": "#/$defs/semanticVersion" },
+            { "$ref": "#/$defs/semanticVersionRange" }
+          ]
         },
         "integrity": {
           "$ref": "#/$defs/integrity"

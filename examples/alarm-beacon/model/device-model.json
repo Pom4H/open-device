@@ -1,0 +1,10 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["annunciate", "simulate"],
+  "ports": [
+    { "id": "alarm", "title": "Alarm input", "direction": "input", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "digital-input", "range": "24 VDC" } }
+  ],
+  "parameters": [
+    { "id": "sounder-enabled", "title": "Sounder enabled", "dataType": "boolean", "default": true, "retained": true }
+  ]
+}

@@ -1,6 +1,13 @@
 {
   "name": "@open-device/example-pump-controller",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build": "bun x asc logic/controller.as.ts --outFile logic/controller.wasm --runtime stub --use abort= --optimizeLevel 3 --shrinkLevel 1 --noAssert --zeroFilledMemory"
+  },
+  "devDependencies": {
+    "assemblyscript": "^0.28.9"
+  }
 }

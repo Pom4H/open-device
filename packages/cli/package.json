@@ -1,6 +1,19 @@
 {
   "name": "@open-device/cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "device": "./bin/device.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@open-device/core": "workspace:*",
+    "@open-device/runtime": "workspace:*",
+    "@open-device/scenario": "workspace:*",
+    "@open-device/spec": "workspace:*"
+  }
 }

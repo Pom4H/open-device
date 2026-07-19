@@ -1,0 +1,105 @@
+{
+  "catalogVersion": "0.1",
+  "id": "https://devices.open-device.dev/catalogs/reference-equipment",
+  "title": "Open Device reference equipment",
+  "entries": [
+    {
+      "alias": "@saturn/saturn-plc",
+      "manifest": "/packages/saturn-plc/open-device.json",
+      "category": "controllers",
+      "renderer": "saturn-plc",
+      "tags": ["plc", "fbd", "controller"]
+    },
+    {
+      "alias": "@saturn/saturn-dio",
+      "manifest": "/packages/saturn-dio/open-device.json",
+      "category": "io-modules",
+      "renderer": "package-view",
+      "tags": ["rs-485", "modbus", "di", "do", "relay", "expansion"]
+    },
+    {
+      "alias": "@saturn/saturn-aio",
+      "manifest": "/packages/saturn-aio/open-device.json",
+      "category": "io-modules",
+      "renderer": "package-view",
+      "tags": ["rs-485", "modbus", "ai", "ao", "4-20ma", "expansion"]
+    },
+    {
+      "alias": "@saturn/saturn-tc",
+      "manifest": "/packages/saturn-tc/open-device.json",
+      "category": "io-modules",
+      "renderer": "package-view",
+      "tags": ["rs-485", "modbus", "temperature", "pt1000", "ntc", "expansion"]
+    },
+    {
+      "alias": "@reference/pressure-transmitter",
+      "manifest": "/packages/pressure-transmitter/open-device.json",
+      "category": "instrumentation",
+      "renderer": "pressure-transmitter",
+      "tags": ["pressure", "4-20ma", "sensor"]
+    },
+    {
+      "alias": "@reference/flow-meter",
+      "manifest": "/packages/flow-meter/open-device.json",
+      "category": "instrumentation",
+      "renderer": "package-view",
+      "tags": ["flow", "4-20ma", "pulse", "electromagnetic", "sensor"]
+    },
+    {
+      "alias": "@reference/level-transmitter",
+      "manifest": "/packages/level-transmitter/open-device.json",
+      "category": "instrumentation",
+      "renderer": "package-view",
+      "tags": ["level", "4-20ma", "hydrostatic", "sensor"]
+    },
+    {
+      "alias": "@reference/centrifugal-pump",
+      "manifest": "/packages/centrifugal-pump/open-device.json",
+      "category": "rotating-equipment",
+      "renderer": "centrifugal-pump",
+      "tags": ["pump", "motor", "water"]
+    },
+    {
+      "alias": "@reference/frequency-drive",
+      "manifest": "/packages/frequency-drive/open-device.json",
+      "category": "drives",
+      "renderer": "package-view",
+      "tags": ["vfd", "drive", "motor", "4-20ma", "speed"]
+    },
+    {
+      "alias": "@reference/motorized-valve",
+      "manifest": "/packages/motorized-valve/open-device.json",
+      "category": "valves",
+      "renderer": "package-view",
+      "tags": ["valve", "actuator", "gate", "limit-switch", "water"]
+    },
+    {
+      "alias": "@reference/suction-tank",
+      "manifest": "/packages/suction-tank/open-device.json",
+      "category": "vessels",
+      "renderer": "suction-tank",
+      "tags": ["tank", "level", "water"]
+    },
+    {
+      "alias": "@reference/process-header",
+      "manifest": "/packages/process-header/open-device.json",
+      "category": "process-piping",
+      "renderer": "process-header",
+      "tags": ["header", "manifold", "pipe", "water"]
+    },
+    {
+      "alias": "@reference/emergency-stop",
+      "manifest": "/packages/emergency-stop/open-device.json",
+      "category": "safety",
+      "renderer": "emergency-stop",
+      "tags": ["safety", "estop", "contact"]
+    },
+    {
+      "alias": "@reference/alarm-beacon",
+      "manifest": "/packages/alarm-beacon/open-device.json",
+      "category": "safety",
+      "renderer": "package-view",
+      "tags": ["beacon", "sounder", "annunciator", "alarm"]
+    }
+  ]
+}

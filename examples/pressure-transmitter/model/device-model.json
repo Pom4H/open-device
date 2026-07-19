@@ -1,0 +1,21 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["sense"],
+  "ports": [
+    {
+      "id": "process",
+      "title": "Process connection",
+      "direction": "input",
+      "domain": "process",
+      "physical": { "medium": "water", "kind": "pressure-tap" }
+    },
+    {
+      "id": "pressure",
+      "title": "Pressure 4–20 mA",
+      "direction": "output",
+      "domain": "signal",
+      "signal": { "dataType": "number", "unit": "bar", "minimum": 0, "maximum": 10 },
+      "physical": { "medium": "electrical", "kind": "analog-current", "range": "4-20 mA" }
+    }
+  ]
+}

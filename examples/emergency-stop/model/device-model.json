@@ -1,0 +1,14 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["safety", "control"],
+  "ports": [
+    {
+      "id": "active",
+      "title": "Safety contact",
+      "direction": "output",
+      "domain": "signal",
+      "signal": { "dataType": "boolean" },
+      "physical": { "medium": "electrical", "kind": "safety-contact" }
+    }
+  ]
+}

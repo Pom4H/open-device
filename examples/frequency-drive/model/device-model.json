@@ -1,0 +1,16 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["control", "simulate"],
+  "ports": [
+    { "id": "supply", "title": "AC supply 3~380 V", "direction": "input", "domain": "power", "physical": { "medium": "electrical", "kind": "ac-three-phase", "range": "380 VAC 50 Hz" } },
+    { "id": "motor", "title": "Motor output U/V/W", "direction": "output", "domain": "power", "physical": { "medium": "electrical", "kind": "ac-three-phase", "range": "0-380 VAC 0-50 Hz" } },
+    { "id": "run", "title": "Run command", "direction": "input", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "digital-input" } },
+    { "id": "speed-reference", "title": "Speed reference", "direction": "input", "domain": "signal", "signal": { "dataType": "number", "unit": "%", "minimum": 0, "maximum": 100 }, "physical": { "medium": "electrical", "kind": "analog-current", "range": "4-20 mA" } },
+    { "id": "run-feedback", "title": "Running feedback", "direction": "output", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "digital-output" } },
+    { "id": "fault", "title": "Fault relay", "direction": "output", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "relay" } }
+  ],
+  "parameters": [
+    { "id": "ramp-time", "title": "Acceleration ramp", "dataType": "number", "unit": "s", "minimum": 0.1, "maximum": 600, "default": 5, "retained": true },
+    { "id": "max-frequency", "title": "Maximum output frequency", "dataType": "number", "unit": "Hz", "minimum": 10, "maximum": 400, "default": 50, "retained": true }
+  ]
+}

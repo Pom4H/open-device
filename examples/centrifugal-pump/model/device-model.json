@@ -1,0 +1,43 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["control", "simulate"],
+  "ports": [
+    {
+      "id": "command",
+      "title": "Motor command",
+      "direction": "input",
+      "domain": "signal",
+      "signal": { "dataType": "boolean" },
+      "physical": { "medium": "electrical", "kind": "digital-input" }
+    },
+    {
+      "id": "feedback",
+      "title": "Run feedback",
+      "direction": "output",
+      "domain": "signal",
+      "signal": { "dataType": "boolean" },
+      "physical": { "medium": "electrical", "kind": "digital-output" }
+    },
+    {
+      "id": "motor-supply",
+      "title": "Motor supply 3~",
+      "direction": "input",
+      "domain": "power",
+      "physical": { "medium": "electrical", "kind": "ac-three-phase", "range": "380 VAC" }
+    },
+    {
+      "id": "suction",
+      "title": "Suction",
+      "direction": "input",
+      "domain": "process",
+      "physical": { "medium": "water", "kind": "pipe" }
+    },
+    {
+      "id": "discharge",
+      "title": "Discharge",
+      "direction": "output",
+      "domain": "process",
+      "physical": { "medium": "water", "kind": "pipe" }
+    }
+  ]
+}

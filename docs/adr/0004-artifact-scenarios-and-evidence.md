@@ -3,9 +3,9 @@
 - Status: accepted
 - Date: 2026-07-18
 
-## Contex
+## Context
 
-An engineering editor may implement a convenient reference simulation in TypeScrip
+An engineering editor may implement a convenient reference simulation in TypeScript
 while compiling a different graph or binary for the controller runtime. Scenario
 results from the reference simulation do not prove that the target artifact behaves
 the same way. Imported binaries also may execute exactly while their original source

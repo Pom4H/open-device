@@ -1,0 +1,13 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["measure", "simulate"],
+  "ports": [
+    { "id": "flow", "title": "Flow rate output", "direction": "output", "domain": "signal", "signal": { "dataType": "number", "unit": "m³/h", "minimum": 0, "maximum": 200 }, "physical": { "medium": "electrical", "kind": "analog-current", "range": "4-20 mA" } },
+    { "id": "pulse", "title": "Totalizer pulse output", "direction": "output", "domain": "signal", "signal": { "dataType": "boolean" }, "physical": { "medium": "electrical", "kind": "open-collector" } },
+    { "id": "process-in", "title": "Process inlet", "direction": "input", "domain": "process", "physical": { "medium": "water", "kind": "pipe", "range": "DN80 · PN16" } },
+    { "id": "process-out", "title": "Process outlet", "direction": "output", "domain": "process", "physical": { "medium": "water", "kind": "pipe", "range": "DN80 · PN16" } }
+  ],
+  "parameters": [
+    { "id": "pulse-weight", "title": "Pulse weight", "dataType": "number", "unit": "m³", "minimum": 0.001, "maximum": 10, "default": 0.1, "retained": true }
+  ]
+}

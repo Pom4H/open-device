@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/device-model.schema.json",
+  "title": "Open Device model document",
+  "description": "Pre-alpha schema for the declarative device model referenced by open-device.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["modelVersion", "ports"],
+  "properties": {
+    "modelVersion": {
+      "const": "0.1"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      }
+    },
+    "ports": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/port"
+      }
+    },
+    "parameters": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/parameter"
+      }
+    }
+  },
+  "$defs": {
+    "portId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "port": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "direction", "domain"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/portId"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "direction": {
+          "enum": ["input", "output", "bidirectional"]
+        },
+        "domain": {
+          "enum": ["signal", "power", "network", "process"]
+        },
+        "signal": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dataType"],
+          "properties": {
+            "dataType": {
+              "enum": ["number", "boolean", "integer", "string", "enum"]
+            },
+            "unit": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "minimum": {
+              "type": "number"
+            },
+            "maximum": {
+              "type": "number"
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "physical": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "medium": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "kind": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "range": {
+              "type": "string",
+              "maxLength": 64
+            }
+          }
+        }
+      }
+    },
+    "parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "dataType"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/portId"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "dataType": {
+          "enum": ["number", "boolean", "integer"]
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "default": {
+          "type": ["number", "boolean"]
+        },
+        "retained": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

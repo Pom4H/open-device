@@ -1,5 +1,18 @@
 {
   "name": "@open-device/playground",
-  "version": "0.0.0",
-  "private": true
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot server.ts"
+  },
+  "dependencies": {
+    "@open-device/core": "workspace:*",
+    "@open-device/runtime": "workspace:*",
+    "@open-device/scenario": "workspace:*",
+    "@open-device/spec": "workspace:*",
+    "@open-device/profile-saturn-fbd": "workspace:*",
+    "@open-device/view-host": "workspace:*"
+  }
 }

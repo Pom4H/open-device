@@ -21,12 +21,12 @@ Install Bun, then run:
 ```sh
 bun install
 bun run typecheck
-bun run tes
-bun run lin
+bun run test
+bun run lint
 ```
 
 The root Bun runner skips tasks that a workspace has not implemented yet and propagates
-real failures once a task exists. The pinned Bun version is declared in the roo
+real failures once a task exists. The pinned Bun version is declared in the root
 `package.json`.
 
 ## Pull requests

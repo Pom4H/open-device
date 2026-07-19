@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/evidence.schema.json",
+  "title": "Open Device evidence document",
+  "description": "Pre-alpha schema for digest-bound scenario run results. Evidence is a local regression record until a signature envelope exists; it does not prove anything to a third party on its own.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evidenceVersion",
+    "result",
+    "subject",
+    "suite",
+    "runner",
+    "summary",
+    "scenarios",
+    "createdAt"
+  ],
+  "properties": {
+    "evidenceVersion": {
+      "const": "0.1"
+    },
+    "result": {
+      "enum": ["passed", "failed"]
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["packageId", "packageVersion", "manifestIntegrity", "logicIntegrity"],
+      "properties": {
+        "packageId": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "packageVersion": {
+          "type": "string"
+        },
+        "manifestIntegrity": {
+          "$ref": "#/$defs/integrity"
+        },
+        "logicIntegrity": {
+          "$ref": "#/$defs/integrity"
+        },
+        "runtimeIntegrity": {
+          "$ref": "#/$defs/integrity"
+        }
+      }
+    },
+    "suite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["integrity", "scenarioCount"],
+      "properties": {
+        "integrity": {
+          "$ref": "#/$defs/integrity"
+        },
+        "scenarioCount": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "runner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "engine"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "engine": {
+          "type": "string"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "failed", "durationMs"],
+      "properties": {
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "durationMs": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "result"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "result": {
+            "enum": ["passed", "failed"]
+          },
+          "failures": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "integrity": {
+      "type": "string",
+      "pattern": "^sha256-[A-Za-z0-9+/]+={0,2}$"
+    }
+  }
+}

@@ -5,7 +5,7 @@ remain subject to implementation experiments and an acceptance ADR.
 
 ## Purpose
 
-The runtime ABI lets a browser or Bun-based tool execute logical devices withou
+The runtime ABI lets a browser or Bun-based tool execute logical devices without
 knowing their source language. It supports two distribution modes:
 
 - **standalone** — the Wasm module contains device behavior;
@@ -15,7 +15,7 @@ The host-facing lifecycle is the same in both modes.
 
 ## Lifecycle
 
-```tex
+```text
 instantiate runtime
       ↓
 create instance with configuration
@@ -33,7 +33,7 @@ snapshot / restore or destroy
 
 The current Saturn FBD reference maps this to:
 
-```tex
+```text
 fbdInit → fbdSetMemory → fbdDoStep / fbdDoStepEx
 ```
 
@@ -58,8 +58,37 @@ element types, numeric Saturn pin IDs, or controller-specific HMI calls.
 
 The first implementation may expose these operations through a small C-compatible
 core Wasm ABI and UTF-8 JSON frames. WIT can describe the interface for authoring and
-code generation, but browsers must be able to run the resulting core module withou
+code generation, but browsers must be able to run the resulting core module without
 native Component Model support.
+
+## Scalar core encoding v1 (implemented)
+
+The first implementation experiment (ADR-0006) encodes the behavioral operations as
+plain scalar exports. JSON value frames remain the host-level TypeScript contract in
+`@open-device/runtime`; nothing string-shaped crosses the Wasm boundary:
+
+```text
+od_abi_version() -> i32                                 // must return 1
+od_create(seed: i64) -> i32                             // 0 = ok
+od_configure(param: i32, value: f64) -> i32
+od_read_param(param: i32) -> f64
+od_write_input(input: i32, value: f64, quality: i32) -> i32
+od_step(elapsed_us: i64) -> i32
+od_read_output(output: i32) -> f64
+od_read_output_quality(output: i32) -> i32
+od_reset(mode: i32) -> i32                              // 0 cold, 1 warm
+```
+
+- Port and parameter indexes come from the manifest `logic.bindings` arrays.
+- Quality codes: 0 good, 1 stale, 2 bad, 3 unknown. Booleans are 0/1 in `f64`.
+- A standalone module must declare no imports; the host rejects modules that do.
+- One logical device per Wasm instance (isolation strategy 2).
+- Snapshot/restore is not part of encoding v1; it returns when the FBD reference
+  profile proves the memory contract.
+
+A richer buffer-based frame encoding (events, diagnostics, strings) is expected to
+supersede this after the FBD shared-runtime profile lands; the behavioral contract
+above stays.
 
 ## Logical instance isolation
 
@@ -102,7 +131,7 @@ Draft quality vocabulary:
 - `bad` — known invalid or failed acquisition;
 - `unknown` — no usable value has been observed.
 
-Profiles may preserve more detailed source quality codes in namespaced metadata, bu
+Profiles may preserve more detailed source quality codes in namespaced metadata, but
 must map them to the core vocabulary.
 
 ## Time and determinism
@@ -130,10 +159,10 @@ The neutral model distinguishes:
 Profiles map these concepts to their runtime. For example, an FBD runtime may expose
 SP and WP indexes while the package model gives them stable semantic IDs.
 
-## Snapshot contrac
+## Snapshot contract
 
 A snapshot includes only deterministic runtime state: retained parameters, timers,
-latches, internal memory, and optional plant state. It excludes credentials, hos
+latches, internal memory, and optional plant state. It excludes credentials, host
 handles, current network connections, and deployment state.
 
 Snapshot metadata identifies:
@@ -181,7 +210,7 @@ Before execution, the host sets limits for:
 A limit violation terminates or quarantines the logical instance and produces a typed
 host diagnostic. It must not partially authorize hardware output.
 
-## Display outpu
+## Display output
 
 A target runtime may emit display primitives for emulating a controller-local HMI.
 Those commands are target-profile data, not the browser view ABI. A profile adapter

@@ -1,0 +1,29 @@
+{
+  "scenarioVersion": "0.1",
+  "id": "emergency-stop",
+  "title": "Emergency stop removes the pump command immediately",
+  "target": "controller",
+  "reset": "cold",
+  "steps": [
+    {
+      "write": {
+        "pressure": { "value": 1.0, "quality": "good" },
+        "auto-mode": { "value": true, "quality": "good" },
+        "emergency-stop": { "value": false, "quality": "good" },
+        "pump-feedback": { "value": false, "quality": "good" }
+      }
+    },
+    { "tick": { "durationMs": 2100, "periodMs": 100 } },
+    { "write": { "pump-feedback": { "value": true, "quality": "good" } } },
+    { "tick": { "durationMs": 200, "periodMs": 100 } },
+    { "expect": { "pump-command": { "equals": true } } },
+    { "write": { "emergency-stop": { "value": true, "quality": "good" } } },
+    { "tick": { "durationMs": 100, "periodMs": 100 } },
+    {
+      "expect": {
+        "pump-command": { "equals": false },
+        "alarm": { "equals": true }
+      }
+    }
+  ]
+}

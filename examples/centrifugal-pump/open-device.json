@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/open-device-package.schema.json",
+  "manifestVersion": "0.1",
+  "id": "https://devices.open-device.dev/reference/centrifugal-pump",
+  "version": "0.1.0",
+  "kind": "physical-device",
+  "name": "centrifugal-pump",
+  "title": "Centrifugal pump",
+  "description": "Reference motor-driven centrifugal pump with electrical and process ports.",
+  "vendor": {
+    "name": "Open Device Reference",
+    "url": "https://devices.open-device.dev"
+  },
+  "license": "Apache-2.0",
+  "model": {
+    "href": "./model/device-model.json",
+    "mediaType": "application/json"
+  }
+}

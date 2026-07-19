@@ -20,7 +20,7 @@ A consumer-owned realization of a device model with connection details, live sta
 permissions, and deployment history.
 
 **Intent**
-A user interaction emitted by a view. It becomes a hardware command only after hos
+A user interaction emitted by a view. It becomes a hardware command only after host
 policy authorizes and routes it.
 
 **Logical device**
@@ -48,7 +48,7 @@ Data loaded by a shared runtime engine, such as an FBD binary. It is distinct fr
 engine itself.
 
 **Quality**
-Metadata describing whether a value is valid, stale, bad, or unknown. Quality is par
+Metadata describing whether a value is valid, stale, bad, or unknown. Quality is part
 of the value contract, not an optional display decoration.
 
 **Registry**

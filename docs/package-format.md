@@ -1,4 +1,4 @@
-# Package forma
+# Package format
 
 Status: **draft v0.1**. This document is descriptive until an ADR marks a version
 normative.
@@ -9,7 +9,7 @@ The format must support static hosting, relative artifact references, immutable
 releases, browser consumption, target-specific extensions, and offline development.
 The manifest is named `open-device.json`.
 
-## Minimal manifes
+## Minimal manifest
 
 ```json
 {
@@ -86,7 +86,23 @@ Rules:
 During local development the CLI may tolerate missing integrity values. `device pack`
 must compute them and fail when release requirements are not met.
 
-## Model documen
+## Validation profiles
+
+One JSON Schema validates the structural shape shared by source and release
+manifests. The stricter rules that separate the two are enforced by the validator
+mode, not by separate schemas:
+
+| Rule | `source` mode | `release` mode |
+| --- | --- | --- |
+| Artifact `integrity` | warning when missing on executables | required on every artifact |
+| Dependency `version` | exact version or semver range | exact version only |
+| Dependency `integrity` | optional | required |
+| Non-HTTPS URL schemes | warning | error |
+
+`device check` validates in `source` mode; `device pack` computes integrity and
+size for every artifact and refuses to publish unless `release` mode passes.
+
+## Model document
 
 The model carries reusable semantics instead of live instance state:
 
@@ -169,11 +185,20 @@ must not be presented as interchangeable files. See [Browser views](views.md).
         "href": "./logic/controller.wasm",
         "mediaType": "application/wasm",
         "integrity": "sha256-BASE64_DIGEST"
+      },
+      "bindings": {
+        "inputs": ["pressure", "auto-mode"],
+        "outputs": ["pump-command", "alarm"],
+        "params": ["setpoint-low"]
       }
     }
   ]
 }
 ```
+
+`bindings` maps model port and parameter IDs to the numeric indexes used by the
+scalar core Wasm encoding: array position is the index. See
+[WebAssembly runtime ABI](runtime-abi.md) and ADR-0006.
 
 ## Logic: program plus shared runtime
 
@@ -224,7 +249,7 @@ pin numbering, runtime versions, binary parsing, and controller HMI behavior.
 }
 ```
 
-Scenarios are data executed by a compatible runner. They do not embed privileged hos
+Scenarios are data executed by a compatible runner. They do not embed privileged host
 code. See [Scenarios and evidence](scenarios-and-evidence.md).
 
 ## Dependencies

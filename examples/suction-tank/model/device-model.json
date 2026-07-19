@@ -1,0 +1,21 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["simulate", "sense"],
+  "ports": [
+    {
+      "id": "outlet",
+      "title": "Water outlet",
+      "direction": "output",
+      "domain": "process",
+      "physical": { "medium": "water", "kind": "pipe" }
+    },
+    {
+      "id": "low-level",
+      "title": "Low-level contact",
+      "direction": "output",
+      "domain": "signal",
+      "signal": { "dataType": "boolean" },
+      "physical": { "medium": "electrical", "kind": "digital-output" }
+    }
+  ]
+}

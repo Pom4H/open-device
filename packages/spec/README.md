@@ -6,24 +6,28 @@ This package must remain free of filesystem, network, UI framework, registry, an
 target-runtime dependencies. Generated TypeScript types may be published alongside
 schemas, but JSON documents remain the cross-language contract.
 
-## Planned contents
+## Contents
 
-```tex
+```text
 schemas/
-├── open-device-package.schema.json
-├── device-model.schema.json
-├── scenario.schema.json
-└── evidence.schema.json
-examples/
-vocabulary/
+├── open-device-package.schema.json   # manifest envelope
+├── device-model.schema.json          # declarative device model
+├── scenario.schema.json              # portable scenario steps
+└── evidence.schema.json              # digest-bound run results
+src/
+├── types.ts                          # TypeScript mirror of the schemas
+└── validate.ts                       # Ajv validation + source/release profiles
 ```
 
-The initial pre-alpha package envelope schema is available a
-[`schemas/open-device-package.schema.json`](schemas/open-device-package.schema.json).
-It exists to make the first implementation concrete and is not a compatibility promise.
+All four draft 2020-12 schemas exist and are exercised by `bun test` against the
+pump-controller example. They make the first implementation concrete and are not a
+compatibility promise.
 
-## First task
+`validatePackageManifest(data, mode)` adds the rules JSON Schema cannot express:
+release-mode integrity pinning, exact dependency versions, href scheme and
+path-containment policy, and program-runtime reference resolution.
 
-Turn the examples in [`docs/package-format.md`](../../docs/package-format.md) and
-[`docs/scenarios-and-evidence.md`](../../docs/scenarios-and-evidence.md) into draf
-2020-12 JSON Schemas with positive and negative fixtures.
+## Next task
+
+Add positive and negative fixtures under `fixtures/` and a normative example
+vocabulary for units and physical signal kinds.

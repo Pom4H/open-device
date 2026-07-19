@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pump controller — front panel</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --od-background: Canvas;
+    --od-foreground: CanvasText;
+    --od-status-good: #238636;
+    --od-status-warning: #9a6700;
+    --od-status-alarm: #cf222e;
+    --od-status-unknown: #6e7781;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 1rem;
+    font: 14px/1.45 system-ui, sans-serif;
+    background: var(--od-background);
+    color: var(--od-foreground);
+    display: grid;
+    gap: 0.75rem;
+  }
+  header { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
+  h1 { font-size: 1rem; margin: 0; }
+  .panel {
+    border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+    border-radius: 10px;
+    padding: 0.75rem;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .pressure-value { font-size: 1.9rem; font-variant-numeric: tabular-nums; }
+  .bar {
+    height: 10px;
+    border-radius: 5px;
+    background: color-mix(in srgb, currentColor 12%, transparent);
+    overflow: hidden;
+  }
+  .bar > div {
+    height: 100%;
+    width: 0%;
+    background: var(--od-status-good);
+    transition: width 200ms linear;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar > div { transition: none; }
+  }
+  .row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .light {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .light::before {
+    content: "";
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: var(--od-status-unknown);
+  }
+  .light[data-state="on"]::before { background: var(--od-status-good); }
+  .light[data-state="alarm"]::before { background: var(--od-status-alarm); }
+  .quality {
+    font-size: 0.72rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    color: var(--od-status-unknown);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .quality[data-quality="good"] { color: var(--od-status-good); }
+  .quality[data-quality="stale"] { color: var(--od-status-warning); }
+  .quality[data-quality="bad"] { color: var(--od-status-alarm); }
+  button {
+    font: inherit;
+    padding: 0.45rem 0.9rem;
+    border-radius: 8px;
+    border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+    background: color-mix(in srgb, currentColor 8%, transparent);
+    color: inherit;
+    cursor: pointer;
+  }
+  button:focus-visible { outline: 2px solid var(--od-status-good); outline-offset: 2px; }
+  .status-text { min-height: 1.2em; }
+</style>
+</head>
+<body>
+  <header>
+    <h1 id="instance-title">Pump controller</h1>
+    <span class="quality" id="pressure-quality" data-quality="unknown">unknown</span>
+  </header>
+
+  <section class="panel" aria-label="Pressure">
+    <div class="pressure-value"><span id="pressure-value">—</span> <small>bar</small></div>
+    <div class="bar" role="img" aria-labelledby="pressure-value"><div id="pressure-bar"></div></div>
+  </section>
+
+  <section class="panel" aria-label="State">
+    <div class="row">
+      <span class="light" id="pump-light" data-state="off">Pump</span>
+      <span class="light" id="alarm-light" data-state="off">Alarm</span>
+      <span class="light" id="auto-light" data-state="off">Auto</span>
+    </div>
+    <div class="row">
+      <button type="button" id="toggle-auto">Request auto-mode toggle</button>
+    </div>
+    <p class="status-text" id="status-text" role="status">Waiting for host…</p>
+  </section>
+
+<script>
+  "use strict";
+  // Channel arrives through the iframe name attribute, protocol 0.1.
+  const PROTOCOL = "0.1";
+  const channel = window.name;
+  let host = null;
+  let autoOn = false;
+
+  const $ = (id) => document.getElementById(id);
+
+  function send(message) {
+    if (host) host.postMessage({ protocol: PROTOCOL, channel, ...message }, "*");
+  }
+
+  function renderSample(sample, light) {
+    if (!sample) return;
+    const on = sample.value === true || sample.value === 1;
+    light.dataset.state = on ? "on" : "off";
+  }
+
+  window.addEventListener("message", (event) => {
+    const data = event.data;
+    if (!data || data.protocol !== PROTOCOL || data.channel !== channel) return;
+
+    if (data.type === "open-device:init") {
+      $("instance-title").textContent = data.instance?.title ?? "Pump controller";
+      $("status-text").textContent = "Connected to host.";
+      return;
+    }
+
+    if (data.type === "open-device:state") {
+      const values = data.values ?? {};
+      const pressure = values["pressure"];
+      if (pressure) {
+        const numeric = typeof pressure.value === "number" ? pressure.value : NaN;
+        $("pressure-value").textContent = Number.isFinite(numeric) ? numeric.toFixed(2) : "—";
+        $("pressure-bar").style.width = `${Math.min(100, Math.max(0, (numeric / 5) * 100))}%`;
+        $("pressure-quality").dataset.quality = pressure.quality;
+        $("pressure-quality").textContent = pressure.quality;
+        // Never present stale or bad data as if it were good.
+        $("pressure-bar").style.background =
+          pressure.quality === "good" ? "var(--od-status-good)" : "var(--od-status-unknown)";
+      }
+      renderSample(values["pump-command"], $("pump-light"));
+      const alarm = values["alarm"];
+      if (alarm) {
+        const on = alarm.value === true || alarm.value === 1;
+        $("alarm-light").dataset.state = on ? "alarm" : "off";
+      }
+      const auto = values["auto-mode"];
+      if (auto) {
+        autoOn = auto.value === true || auto.value === 1;
+        renderSample(auto, $("auto-light"));
+      }
+    }
+  });
+
+  $("toggle-auto").addEventListener("click", () => {
+    // An intent is a request. The host may reject it or ask for confirmation;
+    // this view never rewrites state as though the command already happened.
+    send({
+      type: "open-device:intent",
+      intentId: crypto.randomUUID(),
+      action: "set-auto",
+      input: { value: !autoOn },
+    });
+    $("status-text").textContent = "Auto-mode change requested…";
+  });
+
+  host = window.parent;
+  send({ type: "open-device:ready" });
+</script>
+</body>
+</html>

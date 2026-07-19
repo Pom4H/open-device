@@ -1,0 +1,24 @@
+{
+  "scenarioVersion": "0.1",
+  "id": "normal-pressure-idle",
+  "title": "Normal pressure keeps the pump stopped",
+  "target": "controller",
+  "reset": "cold",
+  "steps": [
+    {
+      "write": {
+        "pressure": { "value": 2.0, "quality": "good" },
+        "auto-mode": { "value": true, "quality": "good" },
+        "emergency-stop": { "value": false, "quality": "good" },
+        "pump-feedback": { "value": false, "quality": "good" }
+      }
+    },
+    { "tick": { "durationMs": 3000, "periodMs": 100 } },
+    {
+      "expect": {
+        "pump-command": { "equals": false },
+        "alarm": { "equals": false }
+      }
+    }
+  ]
+}

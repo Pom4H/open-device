@@ -1,0 +1,51 @@
+<svg viewBox="0 0 240 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Electromagnetic flow meter" font-family="Inter, ui-sans-serif, system-ui, sans-serif">
+  <defs>
+    <filter id="od-fm-soft" x="-15%" y="-15%" width="130%" height="130%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#000000" flood-opacity=".35"/></filter>
+    <linearGradient id="od-fm-tube" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a8b6c8"/><stop offset=".5" stop-color="#7c8a9c"/><stop offset="1" stop-color="#5d6b7d"/>
+    </linearGradient>
+    <linearGradient id="od-fm-head" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3f4c60"/><stop offset="1" stop-color="#28313f"/>
+    </linearGradient>
+  </defs>
+
+  <!-- transmitter head -->
+  <g filter="url(#od-fm-soft)">
+    <rect x="56" y="16" width="128" height="74" rx="10" fill="url(#od-fm-head)" stroke="#10161f" stroke-width="1.4"/>
+  </g>
+  <rect x="68" y="28" width="104" height="34" rx="4" fill="#0b1220" stroke="#3c4a61"/>
+  <text data-flow-value="" x="146" y="52" text-anchor="end" font-size="17" font-weight="700" font-family="ui-monospace, monospace" fill="#38bdf8">0.0</text>
+  <text x="151" y="52" font-size="7" fill="#64748b">m³/h</text>
+  <text x="68" y="74" font-size="7" fill="#7b8aa0" letter-spacing="1">REF FLOWMAG 80</text>
+  <text data-flow-total="" x="172" y="74" text-anchor="end" font-size="7" font-family="ui-monospace, monospace" fill="#94a3b8">Σ 0 m³</text>
+
+  <!-- signal terminals -->
+  <g font-size="6" font-weight="700" fill="#9fb0c6">
+    <rect x="226" y="46" width="12" height="12" rx="2" fill="#6b5c1c" stroke="#3d3413"/>
+    <text x="222" y="55" text-anchor="end">4-20</text>
+    <rect x="226" y="76" width="12" height="12" rx="2" fill="#245b34" stroke="#0f1c14"/>
+    <text x="222" y="85" text-anchor="end">PLS</text>
+  </g>
+
+  <!-- neck -->
+  <rect x="112" y="90" width="16" height="34" fill="#4b5563" stroke="#1f2733"/>
+
+  <!-- tube -->
+  <g filter="url(#od-fm-soft)">
+    <rect x="34" y="140" width="172" height="40" rx="6" fill="url(#od-fm-tube)" stroke="#333f4f" stroke-width="1.4"/>
+  </g>
+  <circle cx="120" cy="160" r="24" fill="#1f2937" stroke="#10161f" stroke-width="1.4"/>
+  <circle cx="120" cy="160" r="16" fill="#0b1220" stroke="#3c4a61"/>
+  <circle data-flow-spin="" cx="120" cy="160" r="2.6" fill="#38bdf8"/>
+  <g fill="#5d6b7d" stroke="#333f4f" stroke-width="1.2">
+    <rect x="22" y="132" width="12" height="56" rx="2"/>
+    <rect x="206" y="132" width="12" height="56" rx="2"/>
+  </g>
+  <g stroke="#2c3644" stroke-width="1.6">
+    <line x1="28" y1="140" x2="28" y2="180"/><line x1="212" y1="140" x2="212" y2="180"/>
+  </g>
+  <rect x="0" y="150" width="22" height="20" fill="#475569" stroke="#28313f"/>
+  <rect x="218" y="150" width="22" height="20" fill="#475569" stroke="#28313f"/>
+
+  <text x="120" y="202" text-anchor="middle" font-size="7.5" fill="#94a3b8">FIT · electromagnetic flow meter DN80</text>
+</svg>

@@ -1,0 +1,15 @@
+{
+  "scenarioVersion": "0.1",
+  "id": "retained-setpoints",
+  "title": "Retained setpoints survive a warm reset and revert on cold reset",
+  "target": "controller",
+  "reset": "cold",
+  "steps": [
+    { "write": { "setpoint-low": { "value": 1.8 } } },
+    { "expect": { "setpoint-low": { "approx": { "value": 1.8, "tolerance": 0.0001 } } } },
+    { "reset": "warm" },
+    { "expect": { "setpoint-low": { "approx": { "value": 1.8, "tolerance": 0.0001 } } } },
+    { "reset": "cold" },
+    { "expect": { "setpoint-low": { "approx": { "value": 1.5, "tolerance": 0.0001 } } } }
+  ]
+}

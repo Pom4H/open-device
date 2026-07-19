@@ -4,7 +4,7 @@ Bun-based developer workflow for package authors.
 
 ## Intended commands
 
-```tex
+```text
 device init       create a source package
 device check      validate structure and engineering constraints
 device dev        serve package, playground, and watch changes

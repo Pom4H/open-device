@@ -11,7 +11,7 @@ execution mechanics.
 
 ## Layer separation
 
-```tex
+```text
 logic    controller behavior
 plant    optional physical/environment behavior
 harness  wiring, time progression, scenario steps and assertions
@@ -81,7 +81,7 @@ A TypeScript reference simulation may run as a separate oracle. If both are pres
 the runner should report cross-model divergence instead of treating the reference
 model as proof that the target binary behaves correctly.
 
-## Evidence documen
+## Evidence document
 
 ```json
 {

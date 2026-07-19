@@ -1,0 +1,22 @@
+{
+  "modelVersion": "0.1",
+  "capabilities": ["io-expansion", "simulate"],
+  "ports": [
+    {
+      "id": "rs485",
+      "title": "RS-485 fieldbus (Modbus RTU)",
+      "direction": "bidirectional",
+      "domain": "network",
+      "physical": { "medium": "electrical", "kind": "rs-485" }
+    },
+    { "id": "t1", "title": "Temperature channel T1", "direction": "input", "domain": "signal", "signal": { "dataType": "number", "unit": "°C", "minimum": -50, "maximum": 200 }, "physical": { "medium": "electrical", "kind": "rtd", "range": "Pt1000 / NTC" } },
+    { "id": "t2", "title": "Temperature channel T2", "direction": "input", "domain": "signal", "signal": { "dataType": "number", "unit": "°C", "minimum": -50, "maximum": 200 }, "physical": { "medium": "electrical", "kind": "rtd", "range": "Pt1000 / NTC" } },
+    { "id": "t3", "title": "Temperature channel T3", "direction": "input", "domain": "signal", "signal": { "dataType": "number", "unit": "°C", "minimum": -50, "maximum": 200 }, "physical": { "medium": "electrical", "kind": "rtd", "range": "Pt1000 / NTC" } },
+    { "id": "t4", "title": "Temperature channel T4", "direction": "input", "domain": "signal", "signal": { "dataType": "number", "unit": "°C", "minimum": -50, "maximum": 200 }, "physical": { "medium": "electrical", "kind": "rtd", "range": "Pt1000 / NTC" } },
+    { "id": "t5", "title": "Temperature channel T5", "direction": "input", "domain": "signal", "signal": { "dataType": "number", "unit": "°C", "minimum": -50, "maximum": 200 }, "physical": { "medium": "electrical", "kind": "rtd", "range": "Pt1000 / NTC" } },
+    { "id": "t6", "title": "Temperature channel T6", "direction": "input", "domain": "signal", "signal": { "dataType": "number", "unit": "°C", "minimum": -50, "maximum": 200 }, "physical": { "medium": "electrical", "kind": "rtd", "range": "Pt1000 / NTC" } }
+  ],
+  "parameters": [
+    { "id": "modbus-address", "title": "Modbus RTU address", "dataType": "integer", "minimum": 1, "maximum": 247, "default": 4, "retained": true }
+  ]
+}
