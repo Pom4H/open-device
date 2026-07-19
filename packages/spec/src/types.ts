@@ -124,6 +124,16 @@ export interface PhysicalDescriptor {
   range?: string;
 }
 
+/**
+ * Physical connection point owned by a port. Placement is typed (strip +
+ * index) so geometry stays derivable and reusable across renderers.
+ */
+export interface TerminalDescriptor {
+  label: string;
+  strip: string;
+  index: number;
+}
+
 export interface PortDescriptor {
   id: string;
   title: string;
@@ -131,6 +141,7 @@ export interface PortDescriptor {
   domain: "signal" | "power" | "network" | "process";
   signal?: SignalDescriptor;
   physical?: PhysicalDescriptor;
+  terminals?: TerminalDescriptor[];
 }
 
 export interface ParameterDescriptor {
@@ -144,11 +155,83 @@ export interface ParameterDescriptor {
   retained?: boolean;
 }
 
+/**
+ * Data anchor inside a faceplate: `port:<portId>` binds to a model port
+ * value; `state:<name>` binds to a host-provided device state such as
+ * power, link, or status.
+ */
+export type BindReference = string;
+
+export interface FaceplateEnclosure {
+  width: number;
+  height: number;
+  depth?: number;
+  cornerRadius?: number;
+}
+
+export interface FaceplateMounting {
+  id: string;
+  type: "din-rail-35" | "panel-cutout" | "surface-screw";
+  fasteners?: number;
+}
+
+export interface FaceplateStrip {
+  id: string;
+  edge: "top" | "bottom" | "left" | "right";
+  pitch: number;
+}
+
+export interface FaceplateDisplayLine {
+  id: string;
+  role: "title" | "value" | "status";
+  text?: string;
+  binds?: BindReference;
+  showUnit?: boolean;
+}
+
+export interface FaceplateDisplay {
+  id: string;
+  technology?: "lcd" | "oled";
+  lines: FaceplateDisplayLine[];
+}
+
+export interface FaceplateIndicator {
+  id: string;
+  label: string;
+  kind: "led" | "rotor";
+  color?: "green" | "blue" | "amber" | "red" | "white";
+  binds?: BindReference;
+}
+
+export interface FaceplateControl {
+  id: string;
+  label: string;
+  kind: "button";
+  action: "identify" | "custom";
+}
+
+/**
+ * Declarative physical packaging. A conforming compiler turns this block
+ * into the front-panel SVG with terminal and mounting anchors; it never
+ * requires vendor-drawn artwork.
+ */
+export interface Faceplate {
+  units: "mm";
+  enclosure: FaceplateEnclosure;
+  branding?: { product?: string; modelCode?: string };
+  mounting?: FaceplateMounting[];
+  strips?: FaceplateStrip[];
+  display?: FaceplateDisplay;
+  indicators?: FaceplateIndicator[];
+  controls?: FaceplateControl[];
+}
+
 export interface DeviceModel {
   modelVersion: "0.1";
   capabilities?: string[];
   ports: PortDescriptor[];
   parameters?: ParameterDescriptor[];
+  faceplate?: Faceplate;
 }
 
 // ── Value frames ────────────────────────────────────────────────────────────
