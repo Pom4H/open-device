@@ -7,6 +7,13 @@
       "runtimeArgs": ["apps/playground/server.ts"],
       "port": 8787,
       "autoPort": true
+    },
+    {
+      "name": "website",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["apps/website/serve.ts"],
+      "port": 4173,
+      "autoPort": true
     }
   ]
 }

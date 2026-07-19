@@ -23,7 +23,15 @@
     },
     "apps/website": {
       "name": "@open-device/website",
-      "version": "0.0.0",
+      "version": "0.1.0",
+      "dependencies": {
+        "@open-device/core": "workspace:*",
+        "@open-device/spec": "workspace:*",
+      },
+    },
+    "examples/alarm-beacon": {
+      "name": "@open-device/example-alarm-beacon",
+      "version": "0.1.0",
     },
     "examples/centrifugal-pump": {
       "name": "@open-device/example-centrifugal-pump",
@@ -31,6 +39,22 @@
     },
     "examples/emergency-stop": {
       "name": "@open-device/example-emergency-stop",
+      "version": "0.1.0",
+    },
+    "examples/flow-meter": {
+      "name": "@open-device/example-flow-meter",
+      "version": "0.1.0",
+    },
+    "examples/frequency-drive": {
+      "name": "@open-device/example-frequency-drive",
+      "version": "0.1.0",
+    },
+    "examples/level-transmitter": {
+      "name": "@open-device/example-level-transmitter",
+      "version": "0.1.0",
+    },
+    "examples/motorized-valve": {
+      "name": "@open-device/example-motorized-valve",
       "version": "0.1.0",
     },
     "examples/pressure-transmitter": {
@@ -48,8 +72,20 @@
         "assemblyscript": "^0.28.9",
       },
     },
+    "examples/saturn-aio": {
+      "name": "@open-device/example-saturn-aio",
+      "version": "0.1.0",
+    },
+    "examples/saturn-dio": {
+      "name": "@open-device/example-saturn-dio",
+      "version": "0.1.0",
+    },
     "examples/saturn-plc": {
       "name": "@open-device/example-saturn-plc",
+      "version": "0.1.0",
+    },
+    "examples/saturn-tc": {
+      "name": "@open-device/example-saturn-tc",
       "version": "0.1.0",
     },
     "examples/suction-tank": {
@@ -117,9 +153,19 @@
 
     "@open-device/core": ["@open-device/core@workspace:packages/core"],
 
+    "@open-device/example-alarm-beacon": ["@open-device/example-alarm-beacon@workspace:examples/alarm-beacon"],
+
     "@open-device/example-centrifugal-pump": ["@open-device/example-centrifugal-pump@workspace:examples/centrifugal-pump"],
 
     "@open-device/example-emergency-stop": ["@open-device/example-emergency-stop@workspace:examples/emergency-stop"],
+
+    "@open-device/example-flow-meter": ["@open-device/example-flow-meter@workspace:examples/flow-meter"],
+
+    "@open-device/example-frequency-drive": ["@open-device/example-frequency-drive@workspace:examples/frequency-drive"],
+
+    "@open-device/example-level-transmitter": ["@open-device/example-level-transmitter@workspace:examples/level-transmitter"],
+
+    "@open-device/example-motorized-valve": ["@open-device/example-motorized-valve@workspace:examples/motorized-valve"],
 
     "@open-device/example-pressure-transmitter": ["@open-device/example-pressure-transmitter@workspace:examples/pressure-transmitter"],
 
@@ -127,7 +173,13 @@
 
     "@open-device/example-pump-controller": ["@open-device/example-pump-controller@workspace:examples/pump-controller"],
 
+    "@open-device/example-saturn-aio": ["@open-device/example-saturn-aio@workspace:examples/saturn-aio"],
+
+    "@open-device/example-saturn-dio": ["@open-device/example-saturn-dio@workspace:examples/saturn-dio"],
+
     "@open-device/example-saturn-plc": ["@open-device/example-saturn-plc@workspace:examples/saturn-plc"],
+
+    "@open-device/example-saturn-tc": ["@open-device/example-saturn-tc@workspace:examples/saturn-tc"],
 
     "@open-device/example-suction-tank": ["@open-device/example-suction-tank@workspace:examples/suction-tank"],
 
