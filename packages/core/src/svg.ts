@@ -89,6 +89,15 @@ export function compileFrontPanelSvg(model: DeviceModel, opts: CompileOptions = 
   const face = model.faceplate;
   if (!face) throw new Error("model has no faceplate block; nothing to compile");
   if (face.units !== "mm") throw new Error(`unsupported faceplate units: ${face.units}`);
+  if (!face.enclosure || !(face.enclosure.width > 0) || !(face.enclosure.height > 0)) {
+    throw new Error("faceplate.enclosure needs positive width and height (mm)");
+  }
+  if (face.enclosure.width < 80 || face.enclosure.height < 60) {
+    throw new Error("enclosure smaller than 80 × 60 mm cannot fit the v0.1 panel layout");
+  }
+  if (face.display && face.enclosure.height < 120) {
+    throw new Error("a display needs an enclosure at least 120 mm tall in the v0.1 layout");
+  }
 
   const eW = face.enclosure.width * SCALE;
   const eH = face.enclosure.height * SCALE;

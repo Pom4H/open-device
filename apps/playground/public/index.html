@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Open Device Playground — model lab</title>
+<meta name="description" content="Edit a device model document and watch the front panel compile live. Attach a plant simulation — water, electrical, or low-voltage — bound to the model's ports by semantics, not by vendor code." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='3' width='26' height='26' rx='7' fill='%23071822' stroke='%2357c7ff' stroke-width='2'/%3E%3Cpath d='M11 12l-4 4 4 4M21 12l4 4-4 4M17.5 9l-3 14' stroke='%2357c7ff' stroke-width='2' stroke-linecap='round' fill='none'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- shared SVG defs used by every compiled panel -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-encl" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f7f9"/><stop offset=".5" stop-color="#dde4e9"/><stop offset="1" stop-color="#c3ccd4"/>
+    </linearGradient>
+    <linearGradient id="g-encl-inner" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eef2f5"/><stop offset="1" stop-color="#d2dae0"/>
+    </linearGradient>
+    <linearGradient id="g-lcd" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#041210"/><stop offset="1" stop-color="#020a09"/>
+    </linearGradient>
+    <linearGradient id="g-panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101d29"/><stop offset="1" stop-color="#0a141d"/>
+    </linearGradient>
+    <linearGradient id="g-glass" x1="0" y1="0" x2=".8" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".16"/><stop offset=".35" stop-color="#ffffff" stop-opacity=".02"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="p-scan" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="2" fill="#000" opacity=".28"/>
+    </pattern>
+    <pattern id="p-grid" width="46" height="46" patternUnits="userSpaceOnUse">
+      <path d="M46 0H0v46" fill="none" stroke="#1c3a46" stroke-width="1" opacity=".5"/>
+    </pattern>
+    <filter id="f-soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000" flood-opacity=".45"/>
+    </filter>
+  </defs>
+</svg>
+
+<header class="site-header">
+  <a class="logo" href="./">
+    <svg viewBox="0 0 32 32" width="34" height="34" aria-hidden="true"><rect x="3" y="3" width="26" height="26" rx="7" fill="#071822" stroke="#57c7ff" stroke-width="2"/><path d="M11 12l-4 4 4 4M21 12l4 4-4 4M17.5 9l-3 14" stroke="#57c7ff" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+    <span><strong>Open Device Playground</strong><small>MODEL LAB · EDIT → COMPILE → SIMULATE</small></span>
+  </a>
+  <div class="header-right">
+    <span class="live-pill"><span class="live-dot"></span> <span id="compile-pill">COMPILER READY</span></span>
+    <a class="btn btn-ghost" href="https://github.com/Pom4H/open-device" target="_blank" rel="noopener">GitHub ↗</a>
+  </div>
+</header>
+
+<main class="lab">
+
+  <!-- ── editor ── -->
+  <section class="card editor-card">
+    <div class="card-head">
+      <span class="card-title">MODEL/DEVICE-MODEL.JSON</span>
+      <div class="preset-tabs" role="tablist" aria-label="Model presets">
+        <button class="ptab active" data-preset="water">💧 Water</button>
+        <button class="ptab" data-preset="electrical">⚡ Electrical</button>
+        <button class="ptab" data-preset="fire">🔔 Low-voltage</button>
+      </div>
+    </div>
+    <textarea id="model-editor" class="mono" spellcheck="false" aria-label="Device model JSON editor"></textarea>
+    <div class="editor-status mono" id="editor-status">loading preset…</div>
+  </section>
+
+  <!-- ── preview ── -->
+  <section class="card preview-card">
+    <div class="card-head">
+      <span class="card-title">COMPILED FRONT PANEL</span>
+      <span class="card-note mono" id="compile-note">—</span>
+    </div>
+    <div class="preview-stage">
+      <div class="device-mount" id="preview-mount"></div>
+    </div>
+    <details class="anchors">
+      <summary class="mono">connection &amp; mounting anchors <span id="anchor-count"></span></summary>
+      <div class="anchors-scroll">
+        <table class="mono" id="anchor-table">
+          <thead><tr><th>kind</th><th>id</th><th>port</th><th>mm x</th><th>mm y</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <!-- ── plant simulation ── -->
+  <section class="card sim-card">
+    <div class="card-head">
+      <span class="card-title" id="sim-title">PLANT SIMULATION</span>
+      <span class="card-note mono" id="sim-domain">—</span>
+    </div>
+    <p class="sim-mapping mono" id="sim-mapping">—</p>
+    <div class="sim-readout mono"><span id="sim-primary">—</span><span id="sim-status">—</span></div>
+    <svg id="trend" viewBox="0 0 560 150" preserveAspectRatio="none" aria-label="Primary signal trend">
+      <rect width="560" height="150" fill="url(#p-grid)" opacity=".35"/>
+      <line id="trend-limit" x1="0" x2="560" stroke="#ff5d5d" stroke-width="1" stroke-dasharray="6 5" opacity="0"/>
+      <polygon id="trend-fill" fill="#57c7ff" opacity=".08" points=""/>
+      <polyline id="trend-line" fill="none" stroke="#57c7ff" stroke-width="2.2" stroke-linejoin="round" points=""/>
+    </svg>
+    <div class="sim-controls" id="sim-controls"></div>
+    <p class="card-foot">The plant engine binds to the model by port semantics — direction, domain,
+      data type, unit — not by hard-coded names or a controller profile. Rename a port in the
+      editor and the simulation re-attaches.</p>
+  </section>
+
+</main>
+
+<footer class="site-footer mono">
+  <span>Open Device Playground — packages are the contract; plant engines and target profiles are pluggable.</span>
+  <span>All devices are fictional; panels are compiled from their models.</span>
+</footer>
+
+<div class="tooltip mono" id="tooltip" hidden></div>
+
+<script src="app.js" type="module"></script>
+</body>
+</html>

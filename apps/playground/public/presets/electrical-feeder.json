@@ -1,0 +1,116 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/device-model.schema.json",
+  "modelVersion": "0.1",
+  "capabilities": ["sense", "control"],
+  "ports": [
+    {
+      "id": "mains-in",
+      "title": "Mains input 230 V AC",
+      "direction": "input",
+      "domain": "power",
+      "physical": {
+        "medium": "electrical",
+        "kind": "supply-ac",
+        "range": "230 V AC · 50 Hz"
+      },
+      "terminals": [
+        { "label": "L", "strip": "main", "index": 0 },
+        { "label": "N", "strip": "main", "index": 1 },
+        { "label": "PE", "strip": "main", "index": 2 }
+      ]
+    },
+    {
+      "id": "load-out",
+      "title": "Protected feeder output",
+      "direction": "output",
+      "domain": "power",
+      "physical": {
+        "medium": "electrical",
+        "kind": "feeder",
+        "range": "≤ 32 A"
+      },
+      "terminals": [
+        { "label": "T1", "strip": "main", "index": 3 },
+        { "label": "T2", "strip": "main", "index": 4 }
+      ]
+    },
+    {
+      "id": "current",
+      "title": "Phase current",
+      "direction": "input",
+      "domain": "signal",
+      "signal": {
+        "dataType": "number",
+        "unit": "A",
+        "minimum": 0,
+        "maximum": 40
+      },
+      "physical": {
+        "medium": "electrical",
+        "kind": "current-transformer",
+        "range": "0–40 A"
+      },
+      "terminals": [{ "label": "CT", "strip": "main", "index": 5 }]
+    },
+    {
+      "id": "breaker-command",
+      "title": "Breaker command",
+      "direction": "output",
+      "domain": "signal",
+      "signal": {
+        "dataType": "boolean"
+      },
+      "physical": {
+        "medium": "electrical",
+        "kind": "shunt-trip",
+        "range": "close / open"
+      },
+      "terminals": [{ "label": "BC", "strip": "main", "index": 6 }]
+    },
+    {
+      "id": "fieldbus",
+      "title": "RS-485 fieldbus",
+      "direction": "bidirectional",
+      "domain": "network",
+      "physical": {
+        "medium": "electrical",
+        "kind": "rs-485",
+        "range": "Modbus RTU"
+      },
+      "terminals": [{ "label": "AB", "strip": "main", "index": 7 }]
+    }
+  ],
+  "faceplate": {
+    "units": "mm",
+    "enclosure": {
+      "width": 200,
+      "height": 150,
+      "depth": 62,
+      "cornerRadius": 8
+    },
+    "branding": {
+      "product": "GRID CELL",
+      "modelCode": "FM-32"
+    },
+    "mounting": [
+      { "id": "din", "type": "din-rail-35" },
+      { "id": "panel", "type": "panel-cutout", "fasteners": 4 }
+    ],
+    "strips": [{ "id": "main", "edge": "bottom", "pitch": 20 }],
+    "display": {
+      "id": "lcd",
+      "technology": "lcd",
+      "lines": [
+        { "id": "product", "role": "title", "text": "GRID CELL" },
+        { "id": "current", "role": "value", "binds": "port:current", "showUnit": true },
+        { "id": "status", "role": "status", "binds": "state:status" }
+      ]
+    },
+    "indicators": [
+      { "id": "pwr", "label": "PWR", "kind": "led", "color": "green", "binds": "state:power" },
+      { "id": "load", "label": "LOAD", "kind": "led", "color": "amber", "binds": "port:breaker-command" },
+      { "id": "trip", "label": "TRIP", "kind": "led", "color": "red", "binds": "state:alarm" }
+    ],
+    "controls": [{ "id": "identify", "label": "IDENTIFY", "kind": "button", "action": "identify" }]
+  }
+}

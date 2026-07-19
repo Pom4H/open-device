@@ -1,5 +1,9 @@
 {
   "name": "@open-device/playground",
   "version": "0.0.0",
-  "private": true
+  "private": true,
+  "scripts": {
+    "build": "bun run build.ts",
+    "dev": "bun run build.ts && bun run serve.ts"
+  }
 }

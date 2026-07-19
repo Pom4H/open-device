@@ -1,0 +1,112 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/device-model.schema.json",
+  "modelVersion": "0.1",
+  "capabilities": ["sense", "control"],
+  "ports": [
+    {
+      "id": "power-supply",
+      "title": "Supply 12 V DC",
+      "direction": "input",
+      "domain": "power",
+      "physical": {
+        "medium": "electrical",
+        "kind": "supply-dc",
+        "range": "10.5–14 V DC"
+      },
+      "terminals": [
+        { "label": "L+", "strip": "main", "index": 0 },
+        { "label": "M", "strip": "main", "index": 1 }
+      ]
+    },
+    {
+      "id": "loop-1",
+      "title": "Detection loop 1",
+      "direction": "input",
+      "domain": "signal",
+      "signal": {
+        "dataType": "number",
+        "unit": "kΩ",
+        "minimum": 0,
+        "maximum": 20
+      },
+      "physical": {
+        "medium": "electrical",
+        "kind": "supervised-loop",
+        "range": "EOL 5.6 kΩ"
+      },
+      "terminals": [
+        { "label": "Z1", "strip": "main", "index": 2 },
+        { "label": "C1", "strip": "main", "index": 3 }
+      ]
+    },
+    {
+      "id": "loop-2",
+      "title": "Detection loop 2",
+      "direction": "input",
+      "domain": "signal",
+      "signal": {
+        "dataType": "number",
+        "unit": "kΩ",
+        "minimum": 0,
+        "maximum": 20
+      },
+      "physical": {
+        "medium": "electrical",
+        "kind": "supervised-loop",
+        "range": "EOL 5.6 kΩ"
+      },
+      "terminals": [
+        { "label": "Z2", "strip": "main", "index": 4 },
+        { "label": "C2", "strip": "main", "index": 5 }
+      ]
+    },
+    {
+      "id": "siren",
+      "title": "Siren output",
+      "direction": "output",
+      "domain": "signal",
+      "signal": {
+        "dataType": "boolean"
+      },
+      "physical": {
+        "medium": "electrical",
+        "kind": "supervised-output",
+        "range": "12 V · 0.5 A"
+      },
+      "terminals": [
+        { "label": "S+", "strip": "main", "index": 6 },
+        { "label": "S-", "strip": "main", "index": 7 }
+      ]
+    }
+  ],
+  "faceplate": {
+    "units": "mm",
+    "enclosure": {
+      "width": 200,
+      "height": 150,
+      "depth": 35,
+      "cornerRadius": 12
+    },
+    "branding": {
+      "product": "GUARD LOOP",
+      "modelCode": "LP-2"
+    },
+    "mounting": [{ "id": "panel", "type": "panel-cutout", "fasteners": 4 }],
+    "strips": [{ "id": "main", "edge": "bottom", "pitch": 20 }],
+    "display": {
+      "id": "lcd",
+      "technology": "lcd",
+      "lines": [
+        { "id": "product", "role": "title", "text": "GUARD LOOP" },
+        { "id": "loop", "role": "value", "binds": "port:loop-1", "showUnit": true },
+        { "id": "status", "role": "status", "binds": "state:status" }
+      ]
+    },
+    "indicators": [
+      { "id": "pwr", "label": "PWR", "kind": "led", "color": "green", "binds": "state:power" },
+      { "id": "alarm", "label": "FIRE", "kind": "led", "color": "red", "binds": "state:alarm" },
+      { "id": "fault", "label": "FLT", "kind": "led", "color": "amber", "binds": "state:fault" }
+    ],
+    "controls": [{ "id": "identify", "label": "IDENTIFY", "kind": "button", "action": "identify" }]
+  }
+}
