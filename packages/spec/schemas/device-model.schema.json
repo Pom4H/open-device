@@ -1,0 +1,325 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/device-model.schema.json",
+  "title": "Open Device model document",
+  "description": "Pre-alpha schema for model/device-model.json. The model is the core artifact: every consumer — catalog, documentation, cabinet tool, simulator, SCADA editor — derives its representation from this document, including the compiled front-panel SVG. Compatibility is not guaranteed before the first tagged specification release.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["modelVersion", "ports"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri"
+    },
+    "modelVersion": {
+      "const": "0.1"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+      }
+    },
+    "ports": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/port"
+      }
+    },
+    "faceplate": {
+      "$ref": "#/$defs/faceplate"
+    }
+  },
+  "$defs": {
+    "localId": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "millimeters": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 10000
+    },
+    "bindReference": {
+      "type": "string",
+      "description": "Data anchor: 'port:<portId>' binds to a model port value; 'state:<name>' binds to a host-provided device state such as power, link, or status.",
+      "pattern": "^(port|state):[A-Za-z][A-Za-z0-9._-]*$"
+    },
+    "port": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "direction", "domain"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/localId"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "direction": {
+          "enum": ["input", "output", "bidirectional"]
+        },
+        "domain": {
+          "enum": ["signal", "power", "network"]
+        },
+        "signal": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "dataType": {
+              "enum": ["boolean", "integer", "number", "string"]
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "minimum": {
+              "type": "number"
+            },
+            "maximum": {
+              "type": "number"
+            }
+          }
+        },
+        "physical": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "medium": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "kind": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "range": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          }
+        },
+        "terminals": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Physical connection points owned by this port. Terminal placement is typed (strip + index), so geometry is derived deterministically and stays reusable across renderers.",
+          "items": {
+            "$ref": "#/$defs/terminal"
+          }
+        }
+      }
+    },
+    "terminal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "strip", "index"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16
+        },
+        "strip": {
+          "$ref": "#/$defs/localId"
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        }
+      }
+    },
+    "faceplate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["units", "enclosure"],
+      "description": "Declarative physical packaging. A conforming compiler turns this block into the front-panel SVG with terminal and mounting anchors; it never requires vendor-drawn artwork.",
+      "properties": {
+        "units": {
+          "const": "mm"
+        },
+        "enclosure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["width", "height"],
+          "properties": {
+            "width": {
+              "$ref": "#/$defs/millimeters"
+            },
+            "height": {
+              "$ref": "#/$defs/millimeters"
+            },
+            "depth": {
+              "$ref": "#/$defs/millimeters"
+            },
+            "cornerRadius": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            }
+          }
+        },
+        "branding": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "product": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "modelCode": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          }
+        },
+        "mounting": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "type"],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/localId"
+              },
+              "type": {
+                "enum": ["din-rail-35", "panel-cutout", "surface-screw"]
+              },
+              "fasteners": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 16
+              }
+            }
+          }
+        },
+        "strips": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "edge", "pitch"],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/localId"
+              },
+              "edge": {
+                "enum": ["top", "bottom", "left", "right"]
+              },
+              "pitch": {
+                "$ref": "#/$defs/millimeters"
+              }
+            }
+          }
+        },
+        "display": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "lines"],
+          "description": "Character-oriented status display. Firmware (for example a Wasm logic module) owns the bound values at runtime; the compiler only reserves the region and emits data anchors.",
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/localId"
+            },
+            "technology": {
+              "enum": ["lcd", "oled"]
+            },
+            "lines": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "role"],
+                "properties": {
+                  "id": {
+                    "$ref": "#/$defs/localId"
+                  },
+                  "role": {
+                    "enum": ["title", "value", "status"]
+                  },
+                  "text": {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "binds": {
+                    "$ref": "#/$defs/bindReference"
+                  },
+                  "showUnit": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "indicators": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label", "kind"],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/localId"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 16
+              },
+              "kind": {
+                "enum": ["led", "rotor"]
+              },
+              "color": {
+                "enum": ["green", "blue", "amber", "red", "white"]
+              },
+              "binds": {
+                "$ref": "#/$defs/bindReference"
+              }
+            }
+          }
+        },
+        "controls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label", "kind", "action"],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/localId"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 32
+              },
+              "kind": {
+                "const": "button"
+              },
+              "action": {
+                "enum": ["identify", "custom"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

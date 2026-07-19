@@ -1,0 +1,134 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pom4H/open-device/main/packages/spec/schemas/device-model.schema.json",
+  "modelVersion": "0.1",
+  "capabilities": ["sense", "control"],
+  "ports": [
+    {
+      "id": "power-supply",
+      "title": "Supply 24 V DC",
+      "direction": "input",
+      "domain": "power",
+      "physical": {
+        "medium": "electrical",
+        "kind": "supply-dc",
+        "range": "18–30 V DC · 3 W max"
+      },
+      "terminals": [
+        { "label": "L+", "strip": "main", "index": 0 },
+        { "label": "M", "strip": "main", "index": 1 }
+      ]
+    },
+    {
+      "id": "fieldbus",
+      "title": "RS-485 fieldbus",
+      "direction": "bidirectional",
+      "domain": "network",
+      "physical": {
+        "medium": "electrical",
+        "kind": "rs-485",
+        "range": "Modbus RTU · up to 115 200 Bd"
+      },
+      "terminals": [
+        { "label": "A", "strip": "main", "index": 2 },
+        { "label": "B", "strip": "main", "index": 3 }
+      ]
+    },
+    {
+      "id": "pressure",
+      "title": "Pressure input",
+      "direction": "input",
+      "domain": "signal",
+      "signal": {
+        "dataType": "number",
+        "unit": "bar",
+        "minimum": 0,
+        "maximum": 10
+      },
+      "physical": {
+        "medium": "electrical",
+        "kind": "analog-current",
+        "range": "4–20 mA · fault < 3.6 mA"
+      },
+      "terminals": [{ "label": "AI1", "strip": "main", "index": 4 }]
+    },
+    {
+      "id": "spare-analog",
+      "title": "Spare analog input",
+      "direction": "input",
+      "domain": "signal",
+      "signal": {
+        "dataType": "number"
+      },
+      "physical": {
+        "medium": "electrical",
+        "kind": "analog-current",
+        "range": "4–20 mA"
+      },
+      "terminals": [{ "label": "AI2", "strip": "main", "index": 5 }]
+    },
+    {
+      "id": "pump-command",
+      "title": "Pump command",
+      "direction": "output",
+      "domain": "signal",
+      "signal": {
+        "dataType": "boolean"
+      },
+      "physical": {
+        "medium": "electrical",
+        "kind": "relay",
+        "range": "2 A @ 24 V DC"
+      },
+      "terminals": [{ "label": "DO1", "strip": "main", "index": 6 }]
+    },
+    {
+      "id": "spare-relay",
+      "title": "Spare relay output",
+      "direction": "output",
+      "domain": "signal",
+      "signal": {
+        "dataType": "boolean"
+      },
+      "physical": {
+        "medium": "electrical",
+        "kind": "relay",
+        "range": "2 A @ 24 V DC"
+      },
+      "terminals": [{ "label": "DO2", "strip": "main", "index": 7 }]
+    }
+  ],
+  "faceplate": {
+    "units": "mm",
+    "enclosure": {
+      "width": 200,
+      "height": 150,
+      "depth": 42,
+      "cornerRadius": 10
+    },
+    "branding": {
+      "product": "FLOW NODE",
+      "modelCode": "PC-2040"
+    },
+    "mounting": [
+      { "id": "panel", "type": "panel-cutout", "fasteners": 4 },
+      { "id": "din", "type": "din-rail-35" }
+    ],
+    "strips": [{ "id": "main", "edge": "bottom", "pitch": 20 }],
+    "display": {
+      "id": "lcd",
+      "technology": "lcd",
+      "lines": [
+        { "id": "product", "role": "title", "text": "FLOW NODE" },
+        { "id": "pressure", "role": "value", "binds": "port:pressure", "showUnit": true },
+        { "id": "status", "role": "status", "binds": "state:status" }
+      ]
+    },
+    "indicators": [
+      { "id": "pwr", "label": "PWR", "kind": "led", "color": "green", "binds": "state:power" },
+      { "id": "net", "label": "NET", "kind": "led", "color": "blue", "binds": "state:link" },
+      { "id": "io", "label": "I/O", "kind": "led", "color": "amber", "binds": "port:pump-command" },
+      { "id": "rotor", "label": "PUMP", "kind": "rotor", "binds": "port:pump-command" }
+    ],
+    "controls": [{ "id": "identify", "label": "IDENTIFY", "kind": "button", "action": "identify" }]
+  }
+}

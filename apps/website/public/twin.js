@@ -1,12 +1,29 @@
 /* ═══════════════ Open Device landing — one live digital twin drives the whole page ═══════════════
  *
- * A single simulated pump-controller instance (state + naive process physics) is
- * rendered simultaneously into every stage of the journey: hero, catalog card,
- * docs embed, engineering view, simulation, SCADA mimic, and the scenario runner.
+ * The device is not drawn anywhere on this page. The page resolves the example
+ * package the way any consumer would — open-device.json → model/device-model.json —
+ * and compiles the front panel with @open-device/core. One simulated instance
+ * (state + naive process physics) then drives every projection: hero, catalog
+ * card, docs embed, engineering view, simulation, SCADA mimic, scenario runner.
  * No frameworks — plain DOM, SVG, and Web Crypto.
  */
 
+import { compileFrontPanelSvg } from "./core-svg.mjs";
+
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+async function loadPackage() {
+  // Single-file builds embed the package; the static site fetches it like a
+  // real consumer, resolving the model artifact relative to the manifest.
+  const inline = document.getElementById("device-package");
+  if (inline) return JSON.parse(inline.textContent);
+  const base = new URL("./pkg/", location.href);
+  const manifest = await (await fetch(new URL("open-device.json", base))).json();
+  const model = await (await fetch(new URL(manifest.model.href, base))).json();
+  return { manifest, model };
+}
+const { manifest, model } = await loadPackage();
+const compiled = compileFrontPanelSvg(model, { title: manifest.title, version: manifest.version });
 
 /* ─────────────── twin state + process model ─────────────── */
 
@@ -63,32 +80,34 @@ const twin = {
   },
 };
 
-/* ─────────────── mount the device template everywhere ─────────────── */
+/* ─────────────── mount the compiled panel everywhere ─────────────── */
 
-const template = document.getElementById("device-template");
 for (const mount of document.querySelectorAll(".device-mount")) {
-  mount.appendChild(template.content.cloneNode(true));
+  mount.innerHTML = compiled.svg;
 }
 const devices = [...document.querySelectorAll(".device")];
 
-/* ─────────────── port metadata + tooltip ─────────────── */
+/* ─────────────── terminal tooltips, generated from the model ─────────────── */
 
-const PORTS = {
-  t24: { name: "L+ · 24 V DC supply", body: "power input · 18–30 V DC · 3 W max" },
-  t0: { name: "M · 0 V return", body: "supply return · common with DO circuits" },
-  ta: { name: "A · RS-485", body: "Modbus RTU · up to 115 200 Bd · terminated" },
-  tb: { name: "B · RS-485", body: "Modbus RTU · differential pair with A" },
-  ai1: { name: "AI1 · pressure PT-101", body: "4–20 mA · 0–10 bar · fault < 3.6 mA" },
-  ai2: { name: "AI2 · spare analog", body: "4–20 mA · unassigned in this project" },
-  do1: { name: "DO1 · pump contactor", body: "relay · 2 A @ 24 V DC · drives K1" },
-  do2: { name: "DO2 · spare relay", body: "relay · 2 A @ 24 V DC · unassigned" },
-};
+const terminalInfo = new Map();
+for (const port of model.ports) {
+  for (const t of port.terminals ?? []) {
+    const phys = [port.physical?.kind, port.physical?.range].filter(Boolean).join(" · ");
+    const sig = port.signal?.unit
+      ? `${port.signal.minimum ?? 0}–${port.signal.maximum ?? "?"} ${port.signal.unit}`
+      : port.signal?.dataType;
+    terminalInfo.set(`${port.id}:${t.label}`, {
+      name: `${t.label} · ${port.title}`,
+      body: [phys, sig].filter(Boolean).join(" · "),
+    });
+  }
+}
 
 const tooltip = document.getElementById("tooltip");
 document.addEventListener("pointerover", (e) => {
   const port = e.target.closest?.(".port");
   if (!port) { tooltip.hidden = true; return; }
-  const info = PORTS[port.dataset.port];
+  const info = terminalInfo.get(`${port.dataset.port}:${port.dataset.terminal}`);
   if (!info) return;
   tooltip.innerHTML = `<b>${info.name}</b>${info.body}`;
   tooltip.hidden = false;
@@ -114,7 +133,7 @@ function showToast(msg) {
 }
 
 // IDENTIFY on any clone pings every clone — one twin, many projections.
-for (const btn of document.querySelectorAll(".dev-identify")) {
+for (const btn of document.querySelectorAll('[data-action="identify"]')) {
   const fire = () => {
     twin.ping();
     showToast("IDENTIFY — every projection of this twin is the same instance");
@@ -154,7 +173,7 @@ for (const el of document.querySelectorAll("[data-layer-link]")) {
   const layer = el.dataset.layerLink;
   el.addEventListener("pointerenter", () => {
     for (const dev of devices) {
-      if (layer === "scenarios") { dev.classList.add("spot-all"); continue; }
+      if (layer === "scenarios" || layer === "manifest") { dev.classList.add("spot-all"); continue; }
       dev.classList.add("spot");
       for (const g of dev.querySelectorAll(`[data-layer="${layer}"]`)) g.classList.add("lit");
     }
@@ -170,11 +189,8 @@ for (const el of document.querySelectorAll("[data-layer-link]")) {
 /* ─────────────── engineering: table row ⇄ terminal highlight ─────────────── */
 
 for (const row of document.querySelectorAll("[data-port-link]")) {
-  const ids = row.dataset.portLink === "t24" ? ["t24", "t0"]
-    : row.dataset.portLink === "ta" ? ["ta", "tb"]
-    : row.dataset.portLink === "ai2" ? ["ai2", "do2"]
-    : [row.dataset.portLink];
-  const targets = () => devices.flatMap((d) => ids.map((id) => d.querySelector(`.port[data-port="${id}"]`)).filter(Boolean));
+  const ids = row.dataset.portLink.split(/\s+/);
+  const targets = () => devices.flatMap((d) => ids.flatMap((id) => [...d.querySelectorAll(`.port[data-port="${id}"]`)]));
   row.addEventListener("pointerenter", () => targets().forEach((p) => p.classList.add("hot")));
   row.addEventListener("pointerleave", () => targets().forEach((p) => p.classList.remove("hot")));
 }
@@ -215,18 +231,18 @@ for (const el of document.querySelectorAll(".reveal")) io.observe(el);
 
 const $$ = (sel) => [...document.querySelectorAll(sel)];
 const bind = {
-  pressure: $$(".twin-pressure"),
+  pressure: $$('[data-bind="port:pressure"]'),
   pressureBig: $$(".twin-pressure-big"),
   pressureScada: $$(".twin-pressure-scada"),
-  lcdStatus: $$(".twin-lcd-status"),
+  lcdStatus: $$('[data-bind="state:status"]'),
   statusline: $$(".twin-statusline"),
   spOut: $$(".twin-sp-out"),
   spScada: $$(".twin-sp-scada"),
   flow: $$(".twin-flow"),
   level: $$(".twin-level"),
-  ledPwr: $$(".twin-led-pwr"),
-  ledNet: $$(".twin-led-net"),
-  ledIo: $$(".twin-led-io"),
+  ledPwr: $$('[data-indicator="pwr"]'),
+  ledNet: $$('[data-indicator="net"]'),
+  ledIo: $$('[data-indicator="io"]'),
 };
 const chartLine = document.getElementById("chart-line");
 const chartFill = document.getElementById("chart-fill");

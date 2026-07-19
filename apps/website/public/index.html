@@ -46,75 +46,8 @@
   </defs>
 </svg>
 
-<!-- ══════════════════ the device: one SVG source of truth, cloned wherever the twin appears ══════════════════ -->
-<template id="device-template">
-  <svg class="device" viewBox="0 0 460 322" role="img" aria-label="FLOW NODE PC-2040 pump controller front panel — live digital twin">
-    <!-- mounting ears -->
-    <g data-layer="enclosure">
-      <rect x="4"   y="112" width="30" height="98" rx="7" fill="url(#g-encl)" stroke="#9aa7b1"/>
-      <rect x="426" y="112" width="30" height="98" rx="7" fill="url(#g-encl)" stroke="#9aa7b1"/>
-      <circle cx="19"  cy="136" r="6.5" fill="#b7c2ca" stroke="#8b98a2"/><path d="M15 136h8M19 132v8" stroke="#7c8892" stroke-width="1.4"/>
-      <circle cx="19"  cy="186" r="6.5" fill="#b7c2ca" stroke="#8b98a2"/><path d="M15 186h8M19 182v8" stroke="#7c8892" stroke-width="1.4"/>
-      <circle cx="441" cy="136" r="6.5" fill="#b7c2ca" stroke="#8b98a2"/><path d="M437 136h8M441 132v8" stroke="#7c8892" stroke-width="1.4"/>
-      <circle cx="441" cy="186" r="6.5" fill="#b7c2ca" stroke="#8b98a2"/><path d="M437 186h8M441 182v8" stroke="#7c8892" stroke-width="1.4"/>
-    </g>
-    <!-- enclosure -->
-    <g data-layer="enclosure">
-      <rect class="dev-shell" x="30" y="10" width="400" height="302" rx="22" fill="url(#g-encl)" stroke="#93a1ac" filter="url(#f-soft)"/>
-      <rect x="41" y="21" width="378" height="280" rx="16" fill="url(#g-encl-inner)" stroke="#b9c4cc"/>
-      <text x="58" y="46" class="dev-brand">OPEN DEVICE</text>
-      <text x="196" y="46" class="dev-brand-sub">PC-2040 · PUMP CONTROLLER</text>
-      <text x="410" y="46" text-anchor="end" class="dev-ver">v1.0.0</text>
-    </g>
-    <!-- front panel -->
-    <g data-layer="view">
-      <rect x="56" y="58" width="348" height="180" rx="13" fill="url(#g-panel)" stroke="#243542"/>
-      <!-- LCD -->
-      <g data-layer="logic">
-        <rect x="72" y="74" width="200" height="112" rx="9" fill="url(#g-lcd)" stroke="#153a33"/>
-        <text x="86" y="100" class="lcd-title">FLOW&#160;NODE</text>
-        <text x="86" y="150" class="lcd-value"><tspan class="twin-pressure">--.-</tspan><tspan class="lcd-unit" dx="8">bar</tspan></text>
-        <text x="86" y="174" class="lcd-status twin-lcd-status">BOOT…</text>
-        <rect x="72" y="74" width="200" height="112" rx="9" fill="url(#p-scan)" pointer-events="none"/>
-        <rect x="72" y="74" width="200" height="112" rx="9" fill="url(#g-glass)" pointer-events="none"/>
-      </g>
-      <!-- LEDs -->
-      <g class="leds">
-        <circle class="led twin-led-pwr" cx="302" cy="92"  r="7"/><text x="318" y="96"  class="led-label">PWR</text>
-        <circle class="led twin-led-net" cx="302" cy="122" r="7"/><text x="318" y="126" class="led-label">NET</text>
-        <circle class="led twin-led-io"  cx="302" cy="152" r="7"/><text x="318" y="156" class="led-label">I/O</text>
-      </g>
-      <!-- impeller status -->
-      <g data-layer="logic" class="impeller-box">
-        <circle cx="322" cy="205" r="17" fill="#0a1a16" stroke="#1f4a40"/>
-        <g class="twin-impeller">
-          <path d="M322 205 L322 191 A14 14 0 0 1 334 199 Z" fill="#38bfa0"/>
-          <path d="M322 205 L332 215 A14 14 0 0 1 318 219 Z" fill="#2c9b82"/>
-          <path d="M322 205 L310 210 A14 14 0 0 1 310 196 Z" fill="#2c9b82"/>
-        </g>
-        <text x="348" y="209" class="led-label">PUMP</text>
-      </g>
-      <!-- identify button -->
-      <g class="dev-identify" role="button" tabindex="0" aria-label="Identify device">
-        <rect x="86" y="196" width="112" height="30" rx="15" fill="#0e2431" stroke="#2b6e5d"/>
-        <circle cx="103" cy="211" r="5" fill="none" stroke="#55e6c1" stroke-width="1.6"/>
-        <text x="115" y="215" class="identify-label">IDENTIFY</text>
-      </g>
-    </g>
-    <!-- terminal strip -->
-    <g data-layer="model" class="terminals">
-      <rect x="56" y="248" width="348" height="46" rx="9" fill="#18242d" stroke="#28353f"/>
-      <g class="port" data-port="t24"><rect x="68"  y="256" width="30" height="22" rx="4"/><circle cx="83"  cy="267" r="5"/><text x="83"  y="290">L+</text></g>
-      <g class="port" data-port="t0"><rect  x="108" y="256" width="30" height="22" rx="4"/><circle cx="123" cy="267" r="5"/><text x="123" y="290">M</text></g>
-      <g class="port" data-port="ta"><rect  x="148" y="256" width="30" height="22" rx="4"/><circle cx="163" cy="267" r="5"/><text x="163" y="290">A</text></g>
-      <g class="port" data-port="tb"><rect  x="188" y="256" width="30" height="22" rx="4"/><circle cx="203" cy="267" r="5"/><text x="203" y="290">B</text></g>
-      <g class="port" data-port="ai1"><rect x="228" y="256" width="30" height="22" rx="4"/><circle cx="243" cy="267" r="5"/><text x="243" y="290">AI1</text></g>
-      <g class="port" data-port="ai2"><rect x="268" y="256" width="30" height="22" rx="4"/><circle cx="283" cy="267" r="5"/><text x="283" y="290">AI2</text></g>
-      <g class="port" data-port="do1"><rect x="308" y="256" width="30" height="22" rx="4"/><circle cx="323" cy="267" r="5"/><text x="323" y="290">DO1</text></g>
-      <g class="port" data-port="do2"><rect x="348" y="256" width="30" height="22" rx="4"/><circle cx="363" cy="267" r="5"/><text x="363" y="290">DO2</text></g>
-    </g>
-  </svg>
-</template>
+<!-- ══════════════════ the device is NOT drawn here: it is compiled in the browser
+     from pkg/model/device-model.json by @open-device/core (see core-svg.mjs) ══════════════════ -->
 
 <!-- ══════════════════ header ══════════════════ -->
 <header class="site-header">
@@ -158,9 +91,9 @@
   <div class="hero-stage" id="hero-stage">
     <div class="hero-tilt" id="hero-tilt">
       <div class="device-mount device-hero" data-mount="hero"></div>
-      <div class="chip chip-1" data-layer-link="enclosure"><i>01</i> / ENCLOSURE.SVG</div>
-      <div class="chip chip-2" data-layer-link="view"><i>02</i> / FRONT-PANEL.HTML</div>
-      <div class="chip chip-3" data-layer-link="model"><i>03</i> / MODEL.JSON</div>
+      <div class="chip chip-1" data-layer-link="manifest"><i>01</i> / OPEN-DEVICE.JSON</div>
+      <div class="chip chip-2" data-layer-link="model"><i>02</i> / MODEL.JSON → SVG</div>
+      <div class="chip chip-3" data-layer-link="view"><i>03</i> / FRONT-PANEL VIEW</div>
       <div class="chip chip-4" data-layer-link="logic"><i>04</i> / PROGRAM.FBDBIN</div>
       <div class="chip chip-5" data-layer-link="scenarios"><i>05</i> / SCENARIOS + EVIDENCE</div>
     </div>
@@ -181,14 +114,15 @@
     <span class="kicker">01 — THE PACKAGE</span>
     <h2>One folder <span class="accent">is</span> the device.</h2>
     <p>Hover the files. Each entry lights up the part of the physical twin it describes —
-       because the twin on this page is rendered from exactly this structure.</p>
+       the front panel you see was compiled in your browser from
+       <code class="mono">model/device-model.json</code>: terminals, mounting, display,
+       indicators. No vendor artwork was shipped.</p>
   </div>
   <div class="anatomy reveal">
     <div class="filetree mono" id="filetree">
-      <div class="ft-line ft-root">@acme/pump-controller <span class="ft-badge">v1.0.0</span></div>
-      <div class="ft-line" data-layer-link="scenarios">├── open-device.json <span class="ft-note"># identity · capabilities · digests</span></div>
-      <div class="ft-line" data-layer-link="model">├── model/ <span class="ft-note"># ports · signals · units · constraints</span></div>
-      <div class="ft-line" data-layer-link="enclosure">├── geometry/enclosure.svg <span class="ft-note"># exact panel &amp; cutout geometry</span></div>
+      <div class="ft-line ft-root">@example/pump-controller <span class="ft-badge">v1.0.0</span></div>
+      <div class="ft-line" data-layer-link="manifest">├── open-device.json <span class="ft-note"># identity · artifacts · digests</span></div>
+      <div class="ft-line" data-layer-link="model">├── model/device-model.json <span class="ft-note"># ports · terminals · mounting · display → SVG</span></div>
       <div class="ft-line" data-layer-link="view">├── views/front-panel.html <span class="ft-note"># sandboxed HTML + CSS</span></div>
       <div class="ft-line" data-layer-link="logic">├── logic/program.fbdbin <span class="ft-note"># + fbd-runtime.wasm (pinned)</span></div>
       <div class="ft-line" data-layer-link="scenarios">├── scenarios/ <span class="ft-note"># portable conformance tests</span></div>
@@ -231,7 +165,7 @@
           <span class="shop-live"><span class="live-dot"></span> LIVE PREVIEW</span>
           <div class="shop-thumb"><div class="device-mount device-mini" data-mount="catalog"></div></div>
           <h3>FLOW NODE PC-2040</h3>
-          <p class="shop-vendor">@acme · pump-controller · <span class="chip-ver">v1.0.0</span></p>
+          <p class="shop-vendor">@example · pump-controller · <span class="chip-ver">v1.0.0</span></p>
           <ul class="shop-specs mono">
             <li>24 V DC · RS-485 Modbus RTU</li>
             <li>2× AI 4–20 mA · 2× relay DO</li>
@@ -250,13 +184,13 @@
         not a static picture. Readers press the buttons of the actual product.</div>
       <div class="split">
         <div class="doc-embed">
-          <div class="browser-chrome"><span></span><span></span><span></span><em class="mono">docs.acme.example/pump-controller</em></div>
+          <div class="browser-chrome"><span></span><span></span><span></span><em class="mono">docs.example.com/pump-controller</em></div>
           <div class="device-mount" data-mount="docs"></div>
         </div>
         <div class="codeblock mono">
 <pre><span class="c">&lt;!-- any page, any framework, no vendor SDK --&gt;</span>
 &lt;<span class="t">open-device</span>
-  <span class="a">package</span>=<span class="s">"https://devices.acme.example/
+  <span class="a">package</span>=<span class="s">"https://devices.example.com/
            pump-controller/1.0.0/open-device.json"</span>
   <span class="a">view</span>=<span class="s">"front-panel"</span>
   <span class="a">mode</span>=<span class="s">"simulated"</span>&gt;
@@ -273,11 +207,11 @@
       <div class="split">
         <div class="wiring-table mono" id="wiring-table">
           <div class="wt-row wt-head"><span>TERMINAL</span><span>SIGNAL</span><span>CHECK</span></div>
-          <div class="wt-row" data-port-link="t24"><span>L+ / M</span><span>supply 18–30 V DC</span><span class="ok wt-check">✓ 24 V rail</span></div>
-          <div class="wt-row" data-port-link="ta"><span>A / B</span><span>RS-485 · Modbus RTU</span><span class="ok wt-check">✓ bus segment 3</span></div>
-          <div class="wt-row" data-port-link="ai1"><span>AI1</span><span>PT-101 · 4–20 mA · 0–10 bar</span><span class="ok wt-check">✓ range · unit</span></div>
-          <div class="wt-row" data-port-link="do1"><span>DO1</span><span>pump contactor K1 · relay 2 A</span><span class="ok wt-check">✓ load &lt; 2 A</span></div>
-          <div class="wt-row" data-port-link="ai2"><span>AI2 / DO2</span><span>spare</span><span class="dim-t wt-check">— reserved</span></div>
+          <div class="wt-row" data-port-link="power-supply"><span>L+ / M</span><span>supply 18–30 V DC</span><span class="ok wt-check">✓ 24 V rail</span></div>
+          <div class="wt-row" data-port-link="fieldbus"><span>A / B</span><span>RS-485 · Modbus RTU</span><span class="ok wt-check">✓ bus segment 3</span></div>
+          <div class="wt-row" data-port-link="pressure"><span>AI1</span><span>PT-101 · 4–20 mA · 0–10 bar</span><span class="ok wt-check">✓ range · unit</span></div>
+          <div class="wt-row" data-port-link="pump-command"><span>DO1</span><span>pump contactor K1 · relay 2 A</span><span class="ok wt-check">✓ load &lt; 2 A</span></div>
+          <div class="wt-row" data-port-link="spare-analog spare-relay"><span>AI2 / DO2</span><span>spare</span><span class="dim-t wt-check">— reserved</span></div>
           <div class="wt-verdict ok">MODEL CHECK PASSED — 0 conflicts, 0 unit mismatches</div>
         </div>
         <div class="anatomy-device">
@@ -364,7 +298,7 @@
           <!-- faceplate link -->
           <g id="scada-face"><rect x="60" y="70" width="240" height="150" rx="12" fill="#081420" stroke="#1d3a4a"/>
             <text x="80" y="98" class="scada-tag">P-101 · FACEPLATE</text>
-            <text x="80" y="128" class="scada-val twin-lcd-status">—</text>
+            <text x="80" y="128" class="scada-val" data-bind="state:status">—</text>
             <text x="80" y="158" class="scada-val sm">SP <tspan class="twin-sp-scada">6.5</tspan> bar · MODE AUTO</text>
             <text x="80" y="188" class="scada-val sm twin-flow">flow --.- m³/h</text>
           </g>
@@ -457,7 +391,7 @@
 
 <footer class="site-footer mono">
   <span>Open Device — an experimental, vendor-neutral specification. Apache-2.0.</span>
-  <span>The FLOW NODE PC-2040 is a fictional reference device.</span>
+  <span>FLOW NODE PC-2040 is a fictional reference device; its panel is compiled from the model.</span>
 </footer>
 
 <div class="tooltip mono" id="tooltip" hidden></div>

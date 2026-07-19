@@ -17,7 +17,7 @@ The manifest is named `open-device.json`.
   "manifestVersion": "0.1",
   "id": "https://devices.example.com/pump-controller",
   "version": "1.0.0",
-  "kind": "logical-device",
+  "kind": "physical-device",
   "name": "pump-controller",
   "title": "Pump controller",
   "description": "Pressure-controlled pump with safety interlocks",
@@ -52,12 +52,14 @@ the stable `id` itself is not versioned.
 | `description` | yes | Short package purpose |
 | `vendor` | yes | Publisher identity and origin |
 | `license` | yes | SPDX license expression |
+| `homepage` | no | Product or documentation page |
 | `model` | yes | Declarative device or runtime model |
 | `views` | no | Browser or target-specific presentations |
 | `logic` | no | Standalone or engine-backed behavior |
 | `scenarios` | no | Portable conformance scenarios |
 | `dependencies` | no | Other immutable Open Device packages |
 | `extensions` | no | Namespaced profile data |
+| `provenance` | no | Fidelity of imported target programs |
 
 ## Artifact reference
 
@@ -132,6 +134,17 @@ The model carries reusable semantics instead of live instance state:
 The draft intentionally separates semantic signal constraints from physical terminal
 constraints. Compatibility requires both layers to agree. Cross-port ownership,
 capacity, and interlock rules need engineering validation in addition to JSON Schema.
+
+The model document is the core artifact and is described by
+[`device-model.schema.json`](../packages/spec/schemas/device-model.schema.json).
+Beyond ports, it may carry typed physical packaging: per-port `terminals` placed
+on named strips, and a `faceplate` block (enclosure dimensions, `din-rail-35` or
+`panel-cutout` mounting, terminal strips, display lines, indicators, controls).
+Because the placement is typed rather than drawn, a conforming compiler — the
+reference lives in `@open-device/core` — derives the front-panel SVG and its
+connection anchors deterministically, so catalogs, documentation, simulators,
+and SCADA editors reuse one geometry without vendor artwork. A working example is
+[`examples/pump-controller/model/device-model.json`](../examples/pump-controller/model/device-model.json).
 
 ## Views
 

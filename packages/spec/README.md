@@ -20,7 +20,12 @@ vocabulary/
 
 The initial pre-alpha package envelope schema is available a
 [`schemas/open-device-package.schema.json`](schemas/open-device-package.schema.json).
-It exists to make the first implementation concrete and is not a compatibility promise.
+The model document schema — ports with semantic and physical layers, terminals,
+and the compilable `faceplate` block (enclosure, mounting, strips, display,
+indicators, controls) — is available a
+[`schemas/device-model.schema.json`](schemas/device-model.schema.json).
+Both exist to make the first implementation concrete and are not a compatibility
+promise.
 
 ## First task
 

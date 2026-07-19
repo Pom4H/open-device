@@ -1,6 +1,18 @@
-# Pump controller example
+# `@open-device/example-pump-controller`
 
-The first end-to-end logical device package.
+Pump controller — the first end-to-end device package. The fictional vendor is
+Example Devices (`https://devices.example.com`); the product branding on the
+faceplate is **FLOW NODE PC-2040**.
+
+## Package layout
+
+- [`open-device.json`](open-device.json) — the package manifest;
+- [`model/device-model.json`](model/device-model.json) — the model document: six
+  ports across power, network, and signal domains, each with semantic and
+  physical layers and typed terminals (`L+ M A B AI1 AI2 DO1 DO2` on the bottom
+  strip), plus the `faceplate` block (enclosure, panel-cutout and DIN-rail
+  mounting, LCD lines, LED and rotor indicators, IDENTIFY control) from which
+  `@open-device/core` compiles the front-panel SVG used by the website.
 
 ## Behavior to demonstrate
 
