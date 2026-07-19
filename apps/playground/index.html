@@ -18,11 +18,11 @@
       </a>
 
       <nav class="mode-switcher" aria-label="Workspace mode">
-        <button type="button" class="mode-button is-active" data-mode-button="edit">
-          <span aria-hidden="true">⌁</span> FBD program
+        <button type="button" class="mode-button is-active" data-mode-button="simulate">
+          <span aria-hidden="true">◇</span> Plant topology
         </button>
-        <button type="button" class="mode-button" data-mode-button="simulate">
-          <span aria-hidden="true">◇</span> Equipment topology
+        <button type="button" class="mode-button" data-mode-button="edit" hidden>
+          <span aria-hidden="true">⌁</span> <b>Controller program</b>
         </button>
         <button type="button" class="mode-button" data-mode-button="scada">
           <span aria-hidden="true">◫</span> SCADA / HMI
@@ -118,7 +118,7 @@
           <button type="button" class="tool-button" id="zoom-in" title="Zoom in">+</button>
           <button type="button" class="tool-button" id="fit-view" title="Fit workspace">⌗</button>
         </div>
-          <div class="toolbar-center" id="workspace-title"><strong>Booster station PS-01 · program v2</strong><span>Saturn FBD source</span></div>
+          <div class="toolbar-center" id="workspace-title"><strong>Booster station PS-01</strong><span>Registry instances · compatible ports · live runtime</span></div>
         <div>
           <span id="connect-hint" class="connect-hint" hidden>Select a compatible port</span>
           <span id="fbd-build-status" class="tiny-badge good editor-only">COMPILED</span>

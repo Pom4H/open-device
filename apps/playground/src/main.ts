@@ -1,30 +1,19 @@
 import { resolvePackage } from "@open-device/core";
-import {
-  ELEM,
-  FbdRuntime,
-  HMI_COLOR,
-  INPUTS_COUNT,
-  PARAMS_COUNT,
-  PANEL_MENU_ITEMS,
-  SATURN_KEYS,
-  SATURN_PLC_VIEW_BOX,
-  formatPanelValue,
-  reducePanel,
-  compileSaturnProgram,
-  createPumpProgram,
-  projectScadaToHmi,
-  renderSaturnPlcSvg,
-  saturnTerminalAnchor,
-  type CompiledSaturnProgram,
-  type ElemCode,
-  type HmiDrawCommand,
-  type PanelButton,
-  type PanelContext,
-  type PanelScreen,
-  type SaturnFbdElement,
-  type SaturnFbdProgram,
-} from "@open-device/profile-saturn-fbd";
 import type { Quality, Sample } from "@open-device/spec";
+import {
+  controllerProfile,
+  controllerProfileForRenderer,
+  type CompiledControllerProgram,
+  type ControllerProfileAdapter,
+  type ControllerProgram,
+  type ControllerRuntimeHandle,
+  type PanelKey,
+  type PortSide,
+  type ProgramBlock,
+  type SignalKind,
+} from "./controller-profile.ts";
+// Target profiles register themselves; the Studio only ever talks to the neutral seam.
+import "./profiles/saturn-fbd.ts";
 import { BUILTIN_RENDERERS, resolveEquipmentCatalog, signalForModelPort, type ResolvedEquipmentDefinition } from "./equipment-catalog.ts";
 import { initializeBoosterStationDiagram, updateBoosterStationDiagram } from "./plant-diagram.ts";
 import { parseEngineeringProject, type EngineeringProjectDocument, type ProjectAdapter } from "./project-document.ts";
@@ -35,15 +24,29 @@ const STEP_MS = 100;
 const WORLD = { width: 1760, height: 920 };
 const LAYOUT_KEY = "open-device-studio:scene:v3";
 const LEGACY_LAYOUT_KEY = "open-device-studio:scene:v2";
-const FBD_KEY = "open-device-studio:saturn-fbd:v7";
+const LEGACY_PROGRAM_KEY = "open-device-studio:saturn-fbd:v7";
 const PROJECT_ID = "booster-station-ps01";
 const PROJECT_TITLE = "Booster station PS-01";
+
+/**
+ * The program editor is not the Studio's front door: it exists only while a
+ * device with a registered controller profile is on the scene. The default
+ * profile is the first registered one; project imports can switch it.
+ */
+const DEFAULT_PROFILE_ID = "saturn-fbd";
+let activeProfile: ControllerProfileAdapter = (() => {
+  const profile = controllerProfile(DEFAULT_PROFILE_ID);
+  if (!profile) throw new Error(`Controller profile ${DEFAULT_PROFILE_ID} is not registered`);
+  return profile;
+})();
+
+function programStorageKey(): string {
+  return `open-device-studio:program:${activeProfile.profileId}:v7`;
+}
 
 type Mode = "edit" | "simulate" | "scada";
 type DeviceKind = ProjectAdapter;
 type LegacyDeviceKind = Exclude<DeviceKind, "registry">;
-type SignalKind = "analog" | "digital" | "safety" | "process" | "power" | "network";
-type PortSide = "top" | "right" | "bottom" | "left";
 
 interface PortSpec {
   id: string;
@@ -117,34 +120,8 @@ interface LegacyStoredScene {
   visible: DeviceKind[];
 }
 
-function saturnPort(id: string, terminalId: string, label: string, signal?: SignalKind): PortSpec {
-  const anchor = saturnTerminalAnchor(terminalId);
-  if (!anchor) throw new Error(`Missing Saturn terminal anchor ${terminalId}`);
-  return {
-    id,
-    terminalId,
-    label,
-    direction: anchor.direction,
-    signal: signal ?? (anchor.signal === "analog" ? "analog" : "digital"),
-    x: anchor.x,
-    y: anchor.y,
-    side: anchor.side,
-  };
-}
-
 const PORTS: Record<LegacyDeviceKind, PortSpec[]> = {
-  controller: [
-    saturnPort("pump-1-command", "DO1", "DO1 · P-101 command"),
-    saturnPort("alarm", "DO2", "DO2 · Common alarm"),
-    saturnPort("pump-2-command", "DO3", "DO3 · P-102 command"),
-    saturnPort("suction-valve", "DO4", "DO4 · Suction valve"),
-    saturnPort("emergency-stop", "DI1", "DI1 · Emergency stop", "safety"),
-    saturnPort("pump-1-feedback", "DI2", "DI2 · P-101 feedback"),
-    saturnPort("pump-2-feedback", "DI4", "DI4 · P-102 feedback"),
-    saturnPort("tank-low-level", "DI5", "DI5 · Tank low level"),
-    saturnPort("pressure", "AI1", "AI1 · Header pressure"),
-    { id: "rs485", label: "X6 · RS-485 fieldbus", direction: "input", signal: "network", x: 121.5, y: 330, side: "bottom" },
-  ],
+  controller: activeProfile.ports(),
   sensor: [
     { id: "process", label: "Process pressure tap", direction: "input", signal: "process", x: 0, y: 96, side: "left" },
     { id: "pressure", label: "4–20 mA output", direction: "output", signal: "analog", x: 180, y: 72, side: "right" },
@@ -185,7 +162,7 @@ const PORTS: Record<LegacyDeviceKind, PortSpec[]> = {
 };
 
 const DEVICE_DEFAULTS: Record<LegacyDeviceKind, Omit<DeviceSpec, "ports">> = {
-  controller: { id: "controller", kind: "controller", definitionId: "https://devices.open-device.dev/saturn/saturn-plc", definitionVersion: "0.1.0", catalogAlias: "@saturn/saturn-plc", renderer: "saturn-plc", title: "Saturn PLC", subtitle: "Booster station controller", x: 300, y: 180, width: SATURN_PLC_VIEW_BOX.width, height: SATURN_PLC_VIEW_BOX.height },
+  controller: { id: "controller", kind: "controller", definitionId: "https://devices.open-device.dev/saturn/saturn-plc", definitionVersion: "0.1.0", catalogAlias: "@saturn/saturn-plc", renderer: activeProfile.rendererId, title: "Saturn PLC", subtitle: "Booster station controller", x: 300, y: 180, width: activeProfile.viewBox.width, height: activeProfile.viewBox.height },
   sensor: { id: "sensor", kind: "sensor", definitionId: "https://devices.open-device.dev/reference/pressure-transmitter", definitionVersion: "0.1.0", catalogAlias: "@reference/pressure-transmitter", renderer: "pressure-transmitter", title: "Pressure transmitter", subtitle: "PT-101 · 4–20 mA", x: 1180, y: 560, width: 180, height: 134 },
   pump1: { id: "pump1", kind: "pump1", definitionId: "https://devices.open-device.dev/reference/centrifugal-pump", definitionVersion: "0.1.0", catalogAlias: "@reference/centrifugal-pump", renderer: "centrifugal-pump", title: "Lead pump", subtitle: "P-101 · motor M1", x: 930, y: 220, width: 205, height: 156 },
   pump2: { id: "pump2", kind: "pump2", definitionId: "https://devices.open-device.dev/reference/centrifugal-pump", definitionVersion: "0.1.0", catalogAlias: "@reference/centrifugal-pump", renderer: "centrifugal-pump", title: "Lag / standby pump", subtitle: "P-102 · motor M2", x: 930, y: 480, width: 205, height: 156 },
@@ -240,7 +217,7 @@ const fbdNodesLayer = el<HTMLDivElement>("fbd-nodes");
 const fbdEdgesLayer = el<SVGGElement>("fbd-edges");
 const fbdDraftEdge = el<SVGPathElement>("fbd-draft-edge");
 
-let mode: Mode = "edit";
+let mode: Mode = "simulate";
 let zoom = 0.78;
 let hadStoredScene = false;
 let devices: DeviceSpec[] = (Object.keys(DEVICE_DEFAULTS) as LegacyDeviceKind[]).map((kind) => ({ ...DEVICE_DEFAULTS[kind], ports: PORTS[kind].map((port) => ({ ...port })) }));
@@ -249,10 +226,9 @@ let equipmentDefinitions: ResolvedEquipmentDefinition[] = [];
 let selected: { kind: "node" | "connection"; id: string } | null = { kind: "node", id: "controller" };
 let pendingPort: { nodeId: string; portId: string } | null = null;
 let dragState: { nodeId: string; pointerId: number; offsetX: number; offsetY: number } | null = null;
-let fbdProgram: SaturnFbdProgram = createPumpProgram();
-let compiledFbd: CompiledSaturnProgram = compileSaturnProgram(fbdProgram);
-let fbdRuntime: FbdRuntime | null = null;
-let hmiCommands: HmiDrawCommand[] = [];
+let fbdProgram: ControllerProgram = activeProfile.createDefaultProgram();
+let compiledFbd: CompiledControllerProgram = activeProfile.compile(fbdProgram);
+let fbdRuntime: ControllerRuntimeHandle | null = null;
 let selectedFbdId: string | null = "start_ton";
 let pendingFbdOutput: string | null = null;
 let fbdDrag: { id: string; pointerId: number; offsetX: number; offsetY: number } | null = null;
@@ -353,7 +329,7 @@ function createProjectDocument(): EngineeringProjectDocument {
       from: { instanceId: connection.from.nodeId, portId: connection.from.portId },
       to: { instanceId: connection.to.nodeId, portId: connection.to.portId },
     })),
-    programs: devices.some((device) => device.id === "controller") ? [{ instanceId: "controller", profile: "saturn-fbd", source: structuredClone(fbdProgram) }] : [],
+    programs: devices.some((device) => device.id === "controller") ? [{ instanceId: "controller", profile: activeProfile.profileId, source: structuredClone(fbdProgram) }] : [],
   };
 }
 
@@ -423,11 +399,15 @@ function applyProject(project: EngineeringProjectDocument): void {
     };
   });
 
-  const programRecord = project.programs.find((program) => program.instanceId === "controller" && program.profile === "saturn-fbd");
-  const nextProgram = (programRecord?.source ?? createPumpProgram()) as SaturnFbdProgram;
-  const nextCompiled = compileSaturnProgram(nextProgram);
-  const loaded = fbdRuntime?.load(nextCompiled.fbdbin);
-  if (loaded && !loaded.ok) throw new Error(loaded.message);
+  const programRecord = project.programs.find((program) => program.instanceId === "controller" && controllerProfile(program.profile) !== undefined);
+  const nextProfile = programRecord ? controllerProfile(programRecord.profile) : undefined;
+  if (programRecord && !nextProfile) throw new Error(`Controller profile ${programRecord.profile} is not registered`);
+  if (nextProfile) activeProfile = nextProfile;
+  const nextProgram = programRecord ? activeProfile.parseProgram(programRecord.source) : activeProfile.createDefaultProgram();
+  if (!nextProgram) throw new Error(`Program for instance controller is not a valid ${activeProfile.displayName} source`);
+  const nextCompiled = activeProfile.compile(nextProgram);
+  const loaded = fbdRuntime?.load(nextCompiled.artifact);
+  if (loaded && !loaded.ok) throw new Error(loaded.message ?? "runtime rejected the compiled artifact");
 
   devices = nextDevices;
   connections = nextConnections;
@@ -457,51 +437,37 @@ async function importProject(file: File): Promise<void> {
 
 function restoreFbdProgram(): void {
   try {
-    const raw = localStorage.getItem(FBD_KEY);
+    const raw = localStorage.getItem(programStorageKey()) ?? localStorage.getItem(LEGACY_PROGRAM_KEY);
     if (raw === null) return;
-    const parsed = JSON.parse(raw) as SaturnFbdProgram;
-    if (parsed.programVersion !== "0.2" || !Array.isArray(parsed.elements) || !Array.isArray(parsed.hmiScreens)) return;
+    const parsed = activeProfile.parseProgram(JSON.parse(raw));
+    if (!parsed) return;
     fbdProgram = parsed;
-    compiledFbd = compileSaturnProgram(fbdProgram);
+    compiledFbd = activeProfile.compile(fbdProgram);
+    localStorage.removeItem(LEGACY_PROGRAM_KEY);
   } catch {
-    localStorage.removeItem(FBD_KEY);
-    fbdProgram = createPumpProgram();
-    compiledFbd = compileSaturnProgram(fbdProgram);
+    localStorage.removeItem(programStorageKey());
+    fbdProgram = activeProfile.createDefaultProgram();
+    compiledFbd = activeProfile.compile(fbdProgram);
   }
 }
 
 function saveFbdProgram(): void {
-  localStorage.setItem(FBD_KEY, JSON.stringify(fbdProgram));
+  localStorage.setItem(programStorageKey(), JSON.stringify(fbdProgram));
 }
 
 const FBD_BLOCK_WIDTH = 164;
 const FBD_BLOCK_HEIGHT = 58;
 
-function fbdMeta(type: ElemCode): { badge: string; group: string; name: string } {
-  if (type === ELEM.INP_PIN) return { badge: "IN", group: "io", name: "Hardware input" };
-  if (type === ELEM.OUT_PIN) return { badge: "OUT", group: "io", name: "Hardware output" };
-  if (type === ELEM.SP) return { badge: "SP", group: "setpoint", name: "Setpoint" };
-  if (type === ELEM.WP) return { badge: "WP", group: "setpoint", name: "Watchpoint" };
-  if (type === ELEM.CONST) return { badge: "123", group: "compare", name: "Constant" };
-  if (type === ELEM.CMP) return { badge: "CMP", group: "compare", name: "Compare" };
-  if (type === ELEM.RSTRG) return { badge: "RS", group: "memory", name: "RS trigger" };
-  if (type === ELEM.TON) return { badge: "TON", group: "timer", name: "On-delay timer" };
-  if (type === ELEM.NOT) return { badge: "NOT", group: "logic", name: "NOT" };
-  if (type === ELEM.AND) return { badge: "AND", group: "logic", name: "AND" };
-  if (type === ELEM.OR) return { badge: "OR", group: "logic", name: "OR" };
-  return { badge: String(type), group: "logic", name: "FBD block" };
-}
-
-function fbdElement(id: string): SaturnFbdElement | undefined {
+function fbdElement(id: string): ProgramBlock | undefined {
   return fbdProgram.elements.find((element) => element.id === id);
 }
 
-function fbdInputY(element: SaturnFbdElement, index: number): number {
+function fbdInputY(element: ProgramBlock, index: number): number {
   const count = element.inputs?.length ?? 0;
   return element.y + (FBD_BLOCK_HEIGHT * (index + 1)) / (count + 1);
 }
 
-function fbdEdgePath(source: SaturnFbdElement, target: SaturnFbdElement, inputIndex: number): string {
+function fbdEdgePath(source: ProgramBlock, target: ProgramBlock, inputIndex: number): string {
   const x1 = source.x + FBD_BLOCK_WIDTH;
   const y1 = source.y + FBD_BLOCK_HEIGHT / 2;
   const x2 = target.x;
@@ -513,7 +479,7 @@ function fbdEdgePath(source: SaturnFbdElement, target: SaturnFbdElement, inputIn
 function renderFbd(): void {
   fbdNodesLayer.replaceChildren();
   for (const element of fbdProgram.elements) {
-    const meta = fbdMeta(element.type);
+    const meta = activeProfile.blockMeta(element.type);
     const block = document.createElement("article");
     block.className = `fbd-block ${meta.group}`;
     block.dataset["fbdId"] = element.id;
@@ -568,8 +534,8 @@ function renderFbd(): void {
   }
   renderFbdEdges();
   renderFbdPortHints();
-  el("fbd-artifact-summary").textContent = `${compiledFbd.elementCount} elements · ${compiledFbd.fbdbin.length.toLocaleString("en-US")} bytes · HMI ${compiledFbd.screenCount}`;
-  if (mode === "edit") el("status-summary").textContent = `${compiledFbd.elementCount} FBD elements · RTL v${compiledFbd.requiredRtlVersion}`;
+  el("fbd-artifact-summary").textContent = `${compiledFbd.elementCount} elements · ${compiledFbd.artifact.length.toLocaleString("en-US")} bytes · HMI ${compiledFbd.screenCount}`;
+  if (mode === "edit") el("status-summary").textContent = `${compiledFbd.elementCount} FBD elements · ${compiledFbd.targetLabel}`;
 }
 
 function renderFbdEdges(): void {
@@ -632,25 +598,10 @@ function beginFbdDrag(event: PointerEvent, id: string): void {
 }
 
 function addFbdBlock(name: string): void {
-  const type = ELEM[name as keyof typeof ELEM];
-  if (type === undefined) return;
-  const id = `${name.toLowerCase()}_${Date.now().toString(36)}`;
-  const inputCount = INPUTS_COUNT[type] ?? 0;
-  const paramCount = PARAMS_COUNT[type] ?? 0;
-  const fallbackSource = fbdProgram.elements.find((element) => element.type === ELEM.CONST)?.id ?? "pressure";
-  const meta = fbdMeta(type);
-  const element: SaturnFbdElement = {
-    id,
-    type,
-    title: `New ${meta.name}`,
-    x: 320 + (fbdProgram.elements.length % 6) * 180,
-    y: 600,
-  };
-  if (inputCount > 0) element.inputs = Array.from({ length: inputCount }, () => fallbackSource);
-  if (paramCount > 0) element.params = Array.from({ length: paramCount }, (_, index) => type === ELEM.SP ? [0, 10000, 100, 0, 1][index] ?? 0 : 0);
-  if (type === ELEM.SP || type === ELEM.WP) element.caption = meta.name;
+  const element = activeProfile.createBlock(name, fbdProgram);
+  if (element === null) return;
   fbdProgram.elements.push(element);
-  selectedFbdId = id;
+  selectedFbdId = element.id;
   saveFbdProgram();
   buildFbd(false);
 }
@@ -671,28 +622,28 @@ function deleteSelectedFbd(): void {
 }
 
 function resetFbdProgram(): void {
-  fbdProgram = createPumpProgram();
+  fbdProgram = activeProfile.createDefaultProgram();
   selectedFbdId = "start_ton";
   pendingFbdOutput = null;
   saveFbdProgram();
   buildFbd(false);
   fitView();
-  toast("Default Saturn FBD program restored");
+  toast(`Default ${activeProfile.displayName} program restored`);
 }
 
 function buildFbd(download: boolean): void {
   const status = el("fbd-build-status");
   try {
-    compiledFbd = compileSaturnProgram(fbdProgram);
-    const loaded = fbdRuntime?.load(compiledFbd.fbdbin);
-    if (loaded && !loaded.ok) throw new Error(loaded.message);
+    compiledFbd = activeProfile.compile(fbdProgram);
+    const loaded = fbdRuntime?.load(compiledFbd.artifact);
+    if (loaded && !loaded.ok) throw new Error(loaded.message ?? "runtime rejected the compiled artifact");
     status.textContent = "COMPILED";
     status.classList.add("good");
     status.classList.remove("bad");
     saveFbdProgram();
     renderFbd();
     renderFbdInspector();
-    el("wasm-size").textContent = `${compiledFbd.fbdbin.length.toLocaleString("en-US")} byte fbdbin`;
+    el("wasm-size").textContent = `${compiledFbd.artifact.length.toLocaleString("en-US")} byte artifact`;
     if (download) downloadFbdbin();
   } catch (error) {
     status.textContent = "BUILD ERROR";
@@ -703,14 +654,14 @@ function buildFbd(download: boolean): void {
 }
 
 function downloadFbdbin(): void {
-  const blob = new Blob([compiledFbd.fbdbin as BlobPart], { type: "application/vnd.saturn.fbdbin" });
+  const blob = new Blob([compiledFbd.artifact as BlobPart], { type: activeProfile.artifactMediaType });
   const href = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = href;
-  link.download = "booster-station-ps01-v2.fbdbin";
+  link.download = `${PROJECT_ID}.${activeProfile.artifactExtension}`;
   link.click();
   URL.revokeObjectURL(href);
-  audit("Saturn artifact built", `${compiledFbd.elementCount} elements · ${compiledFbd.fbdbin.length} bytes · CRC valid`);
+  audit(`${activeProfile.displayName} artifact built`, `${compiledFbd.elementCount} elements · ${compiledFbd.artifact.length} bytes`);
 }
 
 function findDevice(id: string): DeviceSpec | undefined {
@@ -764,12 +715,12 @@ function isConnected(nodeId: string, portId: string): boolean {
 }
 
 function controllerMarkup(device: DeviceSpec): string {
-  const connectedTerminals = PORTS.controller
+  const connectedTerminals = device.ports
     .filter((port) => port.terminalId !== undefined && isConnected(device.id, port.id))
     .map((port) => port.terminalId as string);
   return `
     <div class="node-drag-handle" aria-hidden="true"></div>
-    <div class="saturn-device node-ui">${renderSaturnPlcSvg({ connectedTerminals, defsPrefix: `studio-${device.id.replace(/[^a-z0-9-]/gi, "-")}` })}</div>`;
+    <div class="controller-device node-ui">${activeProfile.renderView({ connectedTerminals, defsPrefix: `studio-${device.id.replace(/[^a-z0-9-]/gi, "-")}` })}</div>`;
 }
 
 function sensorMarkup(device: DeviceSpec): string {
@@ -869,6 +820,7 @@ function renderNodes(): void {
     nodesLayer.append(node);
   }
   updateCatalogAvailability();
+  updateProgramModeTab();
   updateVisualState();
 }
 
@@ -1103,12 +1055,31 @@ function onPointerUp(event: PointerEvent): void {
   saveScene();
 }
 
+/** The program editor exists only while a device with a registered controller profile is on the scene. */
+function programEditorAvailable(): boolean {
+  return devices.some((device) => controllerProfileForRenderer(device.renderer) !== undefined);
+}
+
+function updateProgramModeTab(): void {
+  const tab = document.querySelector<HTMLButtonElement>('[data-mode-button="edit"]');
+  if (!tab) return;
+  const available = programEditorAvailable();
+  tab.hidden = !available;
+  const label = tab.querySelector("b");
+  if (label) label.textContent = `${activeProfile.displayName} program`;
+  if (!available && mode === "edit") setMode("simulate");
+}
+
 function setMode(next: Mode): void {
+  if (next === "edit" && !programEditorAvailable()) {
+    toast("Add a programmable controller to the scene to edit its program", "alarm");
+    return;
+  }
   mode = next;
   body.dataset["mode"] = mode;
   document.querySelectorAll<HTMLButtonElement>("[data-mode-button]").forEach((button) => button.classList.toggle("is-active", button.dataset["modeButton"] === mode));
-  el("workspace-title").querySelector("strong")!.textContent = mode === "edit" ? `${fbdProgram.name} · ${fbdProgram.version}` : "Booster station PS-01";
-  el("workspace-title").querySelector("span")!.textContent = mode === "edit" ? "Saturn FBD source" : mode === "simulate" ? "Registry instances · compatible ports · live runtime" : "Software SCADA · Saturn HMI projection";
+  el("workspace-title").querySelector("strong")!.textContent = mode === "edit" ? `${fbdProgram.name} · ${fbdProgram.version}` : PROJECT_TITLE;
+  el("workspace-title").querySelector("span")!.textContent = mode === "edit" ? `${activeProfile.displayName} source` : mode === "simulate" ? "Registry instances · compatible ports · live runtime" : "Software SCADA · controller HMI projection";
   pendingPort = null;
   connectHint.hidden = true;
   draftCable.toggleAttribute("hidden", true);
@@ -1152,13 +1123,13 @@ function renderFbdInspector(): void {
     content.innerHTML = `<div class="empty-inspector">Select a function block to edit its parameters and connections.</div>`;
     return;
   }
-  const meta = fbdMeta(element.type);
+  const meta = activeProfile.blockMeta(element.type);
   title.textContent = element.title;
   const inputs = (element.inputs ?? []).map((sourceId, index) => {
     const source = fbdElement(sourceId);
     return `<div class="connection-row"><i class="quality-dot good"></i><span>IN${index + 1}<small>${escapeHtml(source?.title ?? sourceId)}</small></span><button type="button" data-pick-source="${index}" title="Pick another source">⌁</button></div>`;
   }).join("");
-  const paramLabels = element.type === ELEM.SP ? ["Lower limit", "Upper limit", "Default value", "Divider", "Step"] : element.type === ELEM.INP_PIN || element.type === ELEM.OUT_PIN ? ["Hardware pin"] : element.type === ELEM.WP ? ["Divider"] : [];
+  const paramLabels = activeProfile.paramLabels(element.type);
   const params = (element.params ?? []).map((value, index) => `<label class="property-field"><span>${escapeHtml(paramLabels[index] ?? `Parameter ${index + 1}`)}</span><input type="number" data-fbd-param="${index}" value="${value}"></label>`).join("");
   content.innerHTML = `
     <div class="inspector-group"><h3>Function block</h3>
@@ -1168,9 +1139,9 @@ function renderFbdInspector(): void {
       <div class="property-row"><span>Position</span><code>${element.x}, ${element.y}</code></div>
     </div>
     ${params ? `<div class="inspector-group"><h3>Parameters</h3><div class="property-fields">${params}</div></div>` : ""}
-    ${(element.type === ELEM.SP || element.type === ELEM.WP) ? `<div class="inspector-group"><h3>Operator metadata</h3><label class="property-field"><span>Caption</span><input type="text" id="fbd-caption-input" value="${escapeHtml(element.caption ?? "")}"></label><p class="inspector-note">This value is exposed to the Saturn HMI and watchpoint/setpoint menu.</p></div>` : ""}
+    ${activeProfile.supportsCaption(element.type) ? `<div class="inspector-group"><h3>Operator metadata</h3><label class="property-field"><span>Caption</span><input type="text" id="fbd-caption-input" value="${escapeHtml(element.caption ?? "")}"></label><p class="inspector-note">This value is exposed to the controller HMI and operator menu.</p></div>` : ""}
     <div class="inspector-group"><h3>Signal connections</h3><div class="connection-list">${inputs || `<div class="empty-inspector">Source block · no inputs</div>`}</div></div>
-    <div class="inspector-group"><h3>Artifact</h3><div class="property-row"><span>Target</span><code>Saturn RTL v${compiledFbd.requiredRtlVersion}</code></div><div class="property-row"><span>Format</span><code>application/vnd.saturn.fbdbin</code></div></div>`;
+    <div class="inspector-group"><h3>Artifact</h3><div class="property-row"><span>Target</span><code>${escapeHtml(compiledFbd.targetLabel)}</code></div><div class="property-row"><span>Format</span><code>${escapeHtml(activeProfile.artifactMediaType)}</code></div></div>`;
 
   content.querySelector<HTMLInputElement>("#fbd-title-input")?.addEventListener("change", (event) => {
     element.title = (event.target as HTMLInputElement).value;
@@ -1238,7 +1209,7 @@ function renderInspector(): void {
   }).join("");
   content.innerHTML = `
     <div class="inspector-group"><h3>Scene instance</h3><div class="property-row"><span>Instance ID</span><code>${escapeHtml(device.id)}</code></div><div class="property-row"><span>Definition</span><code>${escapeHtml(device.catalogAlias)}@${escapeHtml(device.definitionVersion)}</code></div><div class="property-row"><span>Package ID</span><code>${escapeHtml(device.definitionId)}</code></div><div class="property-row"><span>Position</span><code>${device.x}, ${device.y}</code></div></div>
-    <div class="inspector-group"><h3>Resolved package</h3><div class="property-row"><span>Kind</span><code>${escapeHtml(definition?.pkg.manifest.kind ?? "resolving")}</code></div><div class="property-row"><span>Vendor</span><code>${escapeHtml(definition?.pkg.manifest.vendor.name ?? "resolving")}</code></div><div class="property-row"><span>Model ports</span><code>${definition?.model.ports.length ?? "—"}</code></div>${device.kind === "controller" ? `<div class="property-row"><span>Program</span><code>pump-controller@0.1.0 · Saturn FBD</code></div>` : ""}</div>
+    <div class="inspector-group"><h3>Resolved package</h3><div class="property-row"><span>Kind</span><code>${escapeHtml(definition?.pkg.manifest.kind ?? "resolving")}</code></div><div class="property-row"><span>Vendor</span><code>${escapeHtml(definition?.pkg.manifest.vendor.name ?? "resolving")}</code></div><div class="property-row"><span>Model ports</span><code>${definition?.model.ports.length ?? "—"}</code></div>${device.kind === "controller" ? `<div class="property-row"><span>Program</span><code>${escapeHtml(fbdProgram.name)} · ${escapeHtml(activeProfile.displayName)}</code></div>` : ""}</div>
     <div class="inspector-group"><h3>Ports</h3><div class="port-list">${portRows}</div></div>
     <div class="inspector-group"><h3>Connections</h3><div class="connection-list">${connectionRows || `<div class="empty-inspector">No active connections.</div>`}</div></div>`;
   content.querySelectorAll<HTMLButtonElement>("[data-remove-connection]").forEach((button) => button.addEventListener("click", () => removeConnection(button.dataset["removeConnection"] ?? "")));
@@ -1385,7 +1356,7 @@ function addDevice(kind: DeviceKind, definition?: ResolvedEquipmentDefinition): 
 
 function kindForDefinition(definition: ResolvedEquipmentDefinition): DeviceKind {
   if (!BUILTIN_RENDERERS.has(definition.catalog.renderer as never)) return "registry";
-  if (definition.catalog.renderer === "saturn-plc") return "controller";
+  if (controllerProfileForRenderer(definition.catalog.renderer) !== undefined) return "controller";
   if (definition.catalog.renderer === "pressure-transmitter") return "sensor";
   if (definition.catalog.renderer === "centrifugal-pump") {
     if (!devices.some((device) => device.id === "pump1")) return "pump1";
@@ -1424,7 +1395,8 @@ const CATEGORY_ORDER = ["controllers", "io-modules", "drives", "instrumentation"
 
 function equipmentSvg(definition: ResolvedEquipmentDefinition): string | null {
   if (definition.svgText) return definition.svgText;
-  if (definition.catalog.renderer === "saturn-plc") return renderSaturnPlcSvg({ defsPrefix: `catalog-${definition.pkg.manifest.name}` });
+  const profileRenderer = controllerProfileForRenderer(definition.catalog.renderer);
+  if (profileRenderer) return profileRenderer.renderView({ defsPrefix: `catalog-${definition.pkg.manifest.name}` });
   return null;
 }
 
@@ -1574,34 +1546,18 @@ function inputSample(nodeId: string, portId: string, fallback: number | boolean 
 
 function stepSimulation(): void {
   if (!simulationRunning || fbdRuntime === null || !findDevice("controller")) return;
-  const pressureSample = inputSample("controller", "pressure", 0);
-  const emergencySample = inputSample("controller", "emergency-stop", false);
-  const feedback1Sample = inputSample("controller", "pump-1-feedback", false);
-  const feedback2Sample = inputSample("controller", "pump-2-feedback", false);
-  const tankLowSample = inputSample("controller", "tank-low-level", false);
-  const inputPins = fbdProgram.bindings.inputs;
-  fbdRuntime.setInput(inputPins.pressure ?? 11, pressureSample.quality === "good" ? Math.round(Number(pressureSample.value) * 100) : 10_000);
-  fbdRuntime.setInput(inputPins["emergency-stop"] ?? 1, sampleOn(emergencySample));
-  fbdRuntime.setInput(inputPins["pump-1-feedback"] ?? 2, sampleOn(feedback1Sample));
-  fbdRuntime.setInput(inputPins["auto-mode"] ?? 3, el<HTMLInputElement>("auto-mode").checked);
-  fbdRuntime.setInput(inputPins["pump-2-feedback"] ?? 4, sampleOn(feedback2Sample));
-  fbdRuntime.setInput(inputPins["tank-low-level"] ?? 5, sampleOn(tankLowSample));
-  // One queued press per scan: a keypress is a single edge, never a stuck contact, and
-  // presses made faster than the scan cycle still each reach the schema.
-  for (const pin of heldKeyPins) fbdRuntime.setInput(pin, false);
-  heldKeyPins = [];
-  const nextKey = keyQueue.shift();
-  if (nextKey !== undefined) {
-    fbdRuntime.setInput(nextKey, true);
-    heldKeyPins.push(nextKey);
-  }
-  hmiCommands = fbdRuntime.stepAndRenderScreen(STEP_MS, 0);
-  controllerOutputs = {
-    "pump-1-command": { value: fbdRuntime.getOutput(fbdProgram.bindings.outputs["pump-1-command"] ?? 1), quality: "good" },
-    alarm: { value: fbdRuntime.getOutput(fbdProgram.bindings.outputs.alarm ?? 2), quality: "good" },
-    "pump-2-command": { value: fbdRuntime.getOutput(fbdProgram.bindings.outputs["pump-2-command"] ?? 3), quality: "good" },
-    "suction-valve": { value: fbdRuntime.getOutput(fbdProgram.bindings.outputs["suction-valve"] ?? 4), quality: "good" },
-  };
+  // Wired samples in, semantic outputs back — pins, scaling, and failsafe
+  // sentinels are the profile adapter's business.
+  fbdRuntime.writeInputs({
+    pressure: inputSample("controller", "pressure", 0),
+    "emergency-stop": inputSample("controller", "emergency-stop", false),
+    "pump-1-feedback": inputSample("controller", "pump-1-feedback", false),
+    "auto-mode": { value: el<HTMLInputElement>("auto-mode").checked, quality: "good" },
+    "pump-2-feedback": inputSample("controller", "pump-2-feedback", false),
+    "tank-low-level": inputSample("controller", "tank-low-level", false),
+  });
+  fbdRuntime.step(STEP_MS);
+  controllerOutputs = fbdRuntime.outputs();
 
   const command1Wire = connectionFrom("controller", "pump-1-command");
   const command2Wire = connectionFrom("controller", "pump-2-command");
@@ -1635,220 +1591,27 @@ function stepSimulation(): void {
   updateVisualState();
 }
 
-function rgb565ToCss(color: number): string {
-  const red = Math.round(((color >> 11) & 0x1f) * 255 / 31);
-  const green = Math.round(((color >> 5) & 0x3f) * 255 / 63);
-  const blue = Math.round((color & 0x1f) * 255 / 31);
-  return `rgb(${red} ${green} ${blue})`;
-}
-
-/**
- * Front-panel keys, mirroring the physical Saturn keypad: ◀ ▶ page through the
- * screens compiled into the .fbdbin, ▲ ▼ adjust the setpoint shown on a setpoint
- * screen by its declared step. Values are written to the live runtime, not to the
- * authored program — a retained setpoint belongs to the instance, not to the model.
- */
-const KEY_PINS: Record<string, number> = { up: SATURN_KEYS.UP, down: SATURN_KEYS.DOWN, left: SATURN_KEYS.LEFT, right: SATURN_KEYS.RIGHT };
-const KEY_EFFECTS: Record<string, string> = {
-  up: "manual run latch set — the schema starts the lead pump",
-  down: "manual run latch reset and fault acknowledge",
-  left: "leaves the firmware menu",
-  right: "enters the firmware menu",
-};
-/** Firmware menu state (Saturn PLC_re4.pdf §8) — owned by the controller, not by the program. */
-let panelScreen: PanelScreen = { kind: "main" };
-
-/** Queued presses: each is held for exactly one scan so the schema sees a clean edge. */
-let keyQueue: number[] = [];
-let heldKeyPins: number[] = [];
-
-/**
- * The front-panel keypad is an input device, not a host menu: a press is written to a
- * schema input pin with `setInput`, and the program running inside the controller decides
- * what happens — including which menu page is drawn, through per-element visibility
- * conditions the firmware evaluates against the schema\'s `menu_page` counter.
- */
-function panelContext(): PanelContext {
-  if (fbdRuntime === null) return { setpoints: [], watchpoints: [], projectName: fbdProgram.name, version: fbdProgram.version };
-  const setpoints = Array.from({ length: fbdRuntime.setpointCount }, (_, index) => {
-    const sp = fbdRuntime!.getSetpoint(index);
-    return { index, caption: sp.caption, value: sp.value, lowLimit: sp.lowLimit, upperLimit: sp.upperLimit, divider: sp.divider, step: sp.step };
-  });
-  const watchpoints = Array.from({ length: fbdRuntime.watchpointCount }, (_, index) => {
-    const wp = fbdRuntime!.getWatchpoint(index);
-    return { caption: wp.caption, value: wp.value, divider: wp.divider };
-  });
-  return { setpoints, watchpoints, projectName: fbdProgram.name, version: fbdProgram.version };
-}
-
 /**
  * A key press goes two places, exactly as on the device: the controller firmware menu
- * consumes it for navigation, and on the working screen it is also an ordinary schema
- * input pin, so the program itself can react (▲/▼ drive the manual-run latch).
+ * consumes it for navigation, and on the working screen it is also an ordinary program
+ * input, so the running logic can react. Menu trees, pins, and setpoint writes are the
+ * profile adapter's business.
  */
 function pressPanelKey(direction: string): void {
   if (fbdRuntime === null) {
     toast("Controller runtime is still loading", "alarm");
     return;
   }
-  const button = direction as PanelButton;
-  if (!["up", "down", "left", "right"].includes(button)) return;
-
-  const onWorkingScreen = panelScreen.kind === "main";
-  const result = reducePanel(panelScreen, button, panelContext());
-  if (result.commit !== undefined) {
-    const sp = fbdRuntime.getSetpoint(result.commit.index);
-    fbdRuntime.setSetpoint(result.commit.index, result.commit.value);
-    audit("Setpoint written from the panel menu", `${sp.caption}: ${formatPanelValue(sp.value, sp.divider)} → ${formatPanelValue(result.commit.value, sp.divider)}`);
-  }
-  const moved = result.screen !== panelScreen;
-  panelScreen = result.screen;
-
-  // ▲/▼ on the working screen are free in the menu tree — they reach the schema as pins.
-  if (onWorkingScreen && (button === "up" || button === "down")) {
-    const pin = KEY_PINS[button];
-    if (pin !== undefined) {
-      keyQueue.push(pin);
-      audit(`Panel key ${button.toUpperCase()} pressed`, `Input pin ${pin} → ${KEY_EFFECTS[button] ?? "read by the schema"}`);
-    }
-  } else if (moved) {
-    audit(`Panel key ${button.toUpperCase()} pressed`, `Firmware menu → ${panelScreen.kind}`);
-  }
-  renderRuntimeHmi(hmiCommands);
+  if (!["up", "down", "left", "right"].includes(direction)) return;
+  const result = fbdRuntime.pressKey(direction as PanelKey);
+  if (result.detail !== "") audit(`Panel key ${direction.toUpperCase()} pressed`, result.detail);
+  renderControllerDisplay();
 }
 
-function panelText(display: SVGSVGElement, x: number, y: number, text: string, color: number, bold = false): void {
-  const node = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  node.setAttribute("x", String(x));
-  node.setAttribute("y", String(y + 14));
-  node.setAttribute("fill", rgb565ToCss(color));
-  node.setAttribute("font-size", bold ? "15" : "13");
-  if (bold) node.setAttribute("font-weight", "700");
-  node.textContent = text;
-  display.append(node);
-}
-
-function panelList(display: SVGSVGElement, rows: readonly string[], selected: number): void {
-  const first = Math.max(0, Math.min(selected - 2, rows.length - 4));
-  rows.slice(first, first + 4).forEach((row, offset) => {
-    const index = first + offset;
-    const y = 52 + offset * 34;
-    if (index === selected) {
-      const bar = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      bar.setAttribute("x", "6");
-      bar.setAttribute("y", String(y - 4));
-      bar.setAttribute("width", "308");
-      bar.setAttribute("height", "28");
-      bar.setAttribute("fill", rgb565ToCss(HMI_COLOR.HEADER));
-      display.append(bar);
-    }
-    panelText(display, 14, y, row, index === selected ? HMI_COLOR.ACCENT : HMI_COLOR.TEXT);
-  });
-}
-
-/** Draw the controller firmware menu; the program screen is what shows on `main`. */
-function renderPanelMenu(display: SVGSVGElement): void {
-  const ctx = panelContext();
-  const header = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  header.setAttribute("width", "320");
-  header.setAttribute("height", "30");
-  header.setAttribute("fill", rgb565ToCss(HMI_COLOR.HEADER));
-  display.append(header);
-
-  if (panelScreen.kind === "menu") {
-    panelText(display, 10, 6, "МЕНЮ", HMI_COLOR.TEXT, true);
-    panelList(display, PANEL_MENU_ITEMS.map((item) => item.label), panelScreen.index);
-    panelText(display, 10, 208, "^ v выбор   > вход   < назад", HMI_COLOR.MUTED);
-    return;
-  }
-  if (panelScreen.kind === "watchpoints") {
-    panelText(display, 10, 6, "ТОЧКИ КОНТРОЛЯ", HMI_COLOR.TEXT, true);
-    panelList(display, ctx.watchpoints.map((wp) => `${wp.caption}  ${formatPanelValue(wp.value, wp.divider)}`), panelScreen.index);
-    panelText(display, 10, 208, "^ v прокрутка   < назад", HMI_COLOR.MUTED);
-    return;
-  }
-  if (panelScreen.kind === "setpoints") {
-    panelText(display, 10, 6, "ТОЧКИ РЕГУЛИРОВАНИЯ", HMI_COLOR.TEXT, true);
-    panelList(display, ctx.setpoints.map((sp) => `${sp.caption}  ${formatPanelValue(sp.value, sp.divider)}`), panelScreen.index);
-    panelText(display, 10, 208, "> изменить   < назад", HMI_COLOR.MUTED);
-    return;
-  }
-  if (panelScreen.kind === "setpoint-edit") {
-    const sp = ctx.setpoints[panelScreen.spIndex];
-    panelText(display, 10, 6, "ИЗМЕНЕНИЕ", HMI_COLOR.TEXT, true);
-    panelText(display, 14, 52, sp?.caption ?? "", HMI_COLOR.TEXT);
-    panelText(display, 14, 92, formatPanelValue(panelScreen.draft, sp?.divider ?? 0), HMI_COLOR.ACCENT, true);
-    if (sp) panelText(display, 14, 130, `${formatPanelValue(sp.lowLimit, sp.divider)} … ${formatPanelValue(sp.upperLimit, sp.divider)}`, HMI_COLOR.MUTED);
-    panelText(display, 10, 208, "^ v значение   > записать   < отмена", HMI_COLOR.MUTED);
-    return;
-  }
-  panelText(display, 10, 6, "ОБ УСТРОЙСТВЕ", HMI_COLOR.TEXT, true);
-  panelText(display, 14, 52, ctx.projectName, HMI_COLOR.TEXT);
-  panelText(display, 14, 86, `Версия ${ctx.version}`, HMI_COLOR.TEXT);
-  panelText(display, 14, 120, "МНПП Сатурн · RTL v8", HMI_COLOR.MUTED);
-  panelText(display, 10, 208, "< назад", HMI_COLOR.MUTED);
-}
-
-function renderRuntimeHmi(commands: readonly HmiDrawCommand[]): void {
+/** Draw the controller display (firmware menu or program screen) into its SVG slot. */
+function renderControllerDisplay(): void {
   const display = nodesLayer.querySelector<SVGSVGElement>(".runtime-hmi");
-  if (!display) return;
-  display.replaceChildren();
-  display.style.background = rgb565ToCss(HMI_COLOR.BG);
-  // Off the working screen the firmware menu owns the display, exactly as on the device.
-  if (panelScreen.kind !== "main") {
-    renderPanelMenu(display);
-    return;
-  }
-  for (const command of commands) {
-    if (command.type === "rect") {
-      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      rect.setAttribute("x", String(Math.min(command.x1, command.x2)));
-      rect.setAttribute("y", String(Math.min(command.y1, command.y2)));
-      rect.setAttribute("width", String(Math.abs(command.x2 - command.x1) + 1));
-      rect.setAttribute("height", String(Math.abs(command.y2 - command.y1) + 1));
-      rect.setAttribute("fill", rgb565ToCss(command.color));
-      display.append(rect);
-    } else if (command.type === "line") {
-      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      line.setAttribute("x1", String(command.x1));
-      line.setAttribute("y1", String(command.y1));
-      line.setAttribute("x2", String(command.x2));
-      line.setAttribute("y2", String(command.y2));
-      line.setAttribute("stroke", rgb565ToCss(command.color));
-      display.append(line);
-    } else if (command.type === "ellipse") {
-      const ellipse = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
-      ellipse.setAttribute("cx", String((command.x1 + command.x2) / 2));
-      ellipse.setAttribute("cy", String((command.y1 + command.y2) / 2));
-      ellipse.setAttribute("rx", String(Math.abs(command.x2 - command.x1) / 2));
-      ellipse.setAttribute("ry", String(Math.abs(command.y2 - command.y1) / 2));
-      ellipse.setAttribute("fill", rgb565ToCss(command.color));
-      display.append(ellipse);
-    } else if (command.type === "text") {
-      const textNode = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      const fontSize = command.font === 1 ? 14 : 12;
-      textNode.setAttribute("x", String(command.x));
-      textNode.setAttribute("y", String(command.y + fontSize));
-      textNode.setAttribute("fill", rgb565ToCss(command.color));
-      textNode.setAttribute("font-size", String(fontSize));
-      textNode.setAttribute("font-weight", command.font === 1 ? "700" : "500");
-      if (!command.transparent) {
-        textNode.setAttribute("stroke", rgb565ToCss(command.bkcolor));
-        textNode.setAttribute("stroke-width", "3");
-        textNode.setAttribute("paint-order", "stroke");
-      }
-      textNode.textContent = command.text;
-      display.append(textNode);
-    } else {
-      const placeholder = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      placeholder.setAttribute("x", String(command.x));
-      placeholder.setAttribute("y", String(command.y));
-      placeholder.setAttribute("width", "20");
-      placeholder.setAttribute("height", "20");
-      placeholder.setAttribute("fill", rgb565ToCss(HMI_COLOR.MUTED));
-      display.append(placeholder);
-    }
-  }
+  if (display && fbdRuntime !== null) fbdRuntime.renderDisplay(display);
 }
 
 function setNodeText(node: HTMLElement, selector: string, value: string): void {
@@ -1919,23 +1682,31 @@ function updateVisualState(): void {
   const eStop = el<HTMLInputElement>("emergency-stop").checked;
   const controller = nodesLayer.querySelector<HTMLElement>(".controller-node");
   controller?.classList.toggle("is-alarm", alarm);
-  const terminalValues = new Map<string, { active: boolean; kind: "on" | "alarm" | "input" }>([
-    ["DO1", { active: pump1Running, kind: "on" }],
-    ["DO2", { active: alarm, kind: "alarm" }],
-    ["DO3", { active: pump2Running, kind: "on" }],
-    ["DO4", { active: sampleOn(controllerOutputs["suction-valve"]), kind: "on" }],
-    ["DI1", { active: eStop, kind: "alarm" }],
-    ["DI2", { active: pump1Running && el<HTMLInputElement>("follow-feedback-1").checked, kind: "input" }],
-    ["DI4", { active: pump2Running && el<HTMLInputElement>("follow-feedback-2").checked, kind: "input" }],
-    ["DI5", { active: tankLevel <= 15, kind: "alarm" }],
-    ["AI1", { active: pressureQuality === "good", kind: "input" }],
+  // Terminal glow is keyed by semantic port IDs; the profile's view carries the
+  // terminal hooks, so no vendor terminal names appear here.
+  const portGlow = new Map<string, { active: boolean; kind: "on" | "alarm" | "input" }>([
+    ["pump-1-command", { active: pump1Running, kind: "on" }],
+    ["alarm", { active: alarm, kind: "alarm" }],
+    ["pump-2-command", { active: pump2Running, kind: "on" }],
+    ["suction-valve", { active: sampleOn(controllerOutputs["suction-valve"]), kind: "on" }],
+    ["emergency-stop", { active: eStop, kind: "alarm" }],
+    ["pump-1-feedback", { active: pump1Running && el<HTMLInputElement>("follow-feedback-1").checked, kind: "input" }],
+    ["pump-2-feedback", { active: pump2Running && el<HTMLInputElement>("follow-feedback-2").checked, kind: "input" }],
+    ["tank-low-level", { active: tankLevel <= 15, kind: "alarm" }],
+    ["pressure", { active: pressureQuality === "good", kind: "input" }],
   ]);
+  const controllerDevice = findDevice("controller");
+  const terminalGlow = new Map<string, { active: boolean; kind: "on" | "alarm" | "input" }>();
+  for (const port of controllerDevice?.ports ?? []) {
+    const state = portGlow.get(port.id);
+    if (port.terminalId && state) terminalGlow.set(port.terminalId, state);
+  }
   controller?.querySelectorAll<SVGRectElement>("[data-terminal-id]").forEach((pin) => {
-    const state = terminalValues.get(pin.dataset["terminalId"] ?? "");
+    const state = terminalGlow.get(pin.dataset["terminalId"] ?? "");
     pin.setAttribute("data-glow", state?.active ? state.kind : "off");
   });
   const pressureText = pressure.toFixed(2);
-  renderRuntimeHmi(hmiCommands);
+  renderControllerDisplay();
   const sensor = nodesLayer.querySelector<HTMLElement>(".sensor-node");
   const sensorValue = sensor?.querySelector<HTMLElement>(".sensor-value b");
   if (sensorValue) sensorValue.textContent = pressureText;
@@ -2059,65 +1830,67 @@ async function runScenarios(): Promise<void> {
   const results = el("scenario-results");
   dialog.showModal();
   summary.className = "scenario-summary";
-  summary.textContent = "Executing Saturn conformance checks against the compiled .fbdbin artifact…";
+  summary.textContent = `Executing ${activeProfile.displayName} conformance checks against the compiled artifact…`;
   results.replaceChildren();
   const button = el<HTMLButtonElement>("run-scenarios");
   button.disabled = true;
   try {
     const startedAt = performance.now();
     const checks: Array<{ id: string; passed: boolean; detail: string }> = [];
-    const createLoadedRuntime = async (): Promise<FbdRuntime> => {
-      const runtime = await FbdRuntime.create();
-      const loaded = runtime.load(compiledFbd.fbdbin);
-      if (!loaded.ok) throw new Error(loaded.message);
-      runtime.setInput(fbdProgram.bindings.inputs.pressure ?? 11, 100);
-      runtime.setInput(fbdProgram.bindings.inputs["emergency-stop"] ?? 1, 0);
-      runtime.setInput(fbdProgram.bindings.inputs["pump-1-feedback"] ?? 2, 1);
-      runtime.setInput(fbdProgram.bindings.inputs["auto-mode"] ?? 3, 1);
-      runtime.setInput(fbdProgram.bindings.inputs["pump-2-feedback"] ?? 4, 1);
-      runtime.setInput(fbdProgram.bindings.inputs["tank-low-level"] ?? 5, 0);
+    const createLoadedRuntime = async (): Promise<ControllerRuntimeHandle> => {
+      const runtime = await activeProfile.createRuntime(fbdProgram);
+      const loaded = runtime.load(compiledFbd.artifact);
+      if (!loaded.ok) throw new Error(loaded.message ?? "runtime rejected the compiled artifact");
+      runtime.writeInput("pressure", 1.0);
+      runtime.writeInput("emergency-stop", false);
+      runtime.writeInput("pump-1-feedback", true);
+      runtime.writeInput("auto-mode", true);
+      runtime.writeInput("pump-2-feedback", true);
+      runtime.writeInput("tank-low-level", false);
       return runtime;
     };
+    const isOn = (value: number | boolean): boolean => value === true || value === 1;
     const startRuntime = await createLoadedRuntime();
     for (let index = 0; index < 25; index += 1) startRuntime.step(100);
-    checks.push({ id: "lead-pump-start", passed: startRuntime.getOutput(fbdProgram.bindings.outputs["pump-1-command"] ?? 1) === 1 && startRuntime.getOutput(fbdProgram.bindings.outputs["pump-2-command"] ?? 3) === 0, detail: "P-101 starts first after the lead TON delay" });
-    startRuntime.setInput(fbdProgram.bindings.inputs.pressure ?? 11, 50);
+    checks.push({ id: "lead-pump-start", passed: isOn(startRuntime.readOutput("pump-1-command")) && !isOn(startRuntime.readOutput("pump-2-command")), detail: "P-101 starts first after the lead start delay" });
+    startRuntime.writeInput("pressure", 0.5);
     for (let index = 0; index < 45; index += 1) startRuntime.step(100);
-    checks.push({ id: "cascade-start", passed: startRuntime.getOutput(fbdProgram.bindings.outputs["pump-2-command"] ?? 3) === 1, detail: "P-102 joins after sustained critical pressure" });
-    startRuntime.setInput(fbdProgram.bindings.inputs.pressure ?? 11, 400);
+    checks.push({ id: "cascade-start", passed: isOn(startRuntime.readOutput("pump-2-command")), detail: "P-102 joins after sustained critical pressure" });
+    startRuntime.writeInput("pressure", 4.0);
     startRuntime.step(100);
-    checks.push({ id: "station-stop", passed: startRuntime.getOutput(fbdProgram.bindings.outputs["pump-1-command"] ?? 1) === 0 && startRuntime.getOutput(fbdProgram.bindings.outputs["pump-2-command"] ?? 3) === 0, detail: "Both pumps stop at the station high setpoint" });
+    checks.push({ id: "station-stop", passed: !isOn(startRuntime.readOutput("pump-1-command")) && !isOn(startRuntime.readOutput("pump-2-command")), detail: "Both pumps stop at the station high setpoint" });
     const failoverRuntime = await createLoadedRuntime();
-    failoverRuntime.setInput(fbdProgram.bindings.inputs["pump-1-feedback"] ?? 2, 0);
+    failoverRuntime.writeInput("pump-1-feedback", false);
     for (let index = 0; index < 60; index += 1) failoverRuntime.step(100);
-    checks.push({ id: "standby-failover", passed: failoverRuntime.getOutput(fbdProgram.bindings.outputs["pump-1-command"] ?? 1) === 0 && failoverRuntime.getOutput(fbdProgram.bindings.outputs["pump-2-command"] ?? 3) === 1, detail: "P-102 takes over after P-101 feedback timeout" });
+    checks.push({ id: "standby-failover", passed: !isOn(failoverRuntime.readOutput("pump-1-command")) && isOn(failoverRuntime.readOutput("pump-2-command")), detail: "P-102 takes over after P-101 feedback timeout" });
     const levelRuntime = await createLoadedRuntime();
     for (let index = 0; index < 25; index += 1) levelRuntime.step(100);
-    levelRuntime.setInput(fbdProgram.bindings.inputs["tank-low-level"] ?? 5, 1);
+    levelRuntime.writeInput("tank-low-level", true);
     levelRuntime.step(100);
-    checks.push({ id: "dry-run-protection", passed: levelRuntime.getOutput(fbdProgram.bindings.outputs["pump-1-command"] ?? 1) === 0 && levelRuntime.getOutput(fbdProgram.bindings.outputs.alarm ?? 2) === 1, detail: "Low tank level stops pumping and raises common alarm" });
+    checks.push({ id: "dry-run-protection", passed: !isOn(levelRuntime.readOutput("pump-1-command")) && isOn(levelRuntime.readOutput("alarm")), detail: "Low tank level stops pumping and raises common alarm" });
     const safetyRuntime = await createLoadedRuntime();
     for (let index = 0; index < 25; index += 1) safetyRuntime.step(100);
-    safetyRuntime.setInput(fbdProgram.bindings.inputs["emergency-stop"] ?? 1, 1);
+    safetyRuntime.writeInput("emergency-stop", true);
     safetyRuntime.step(100);
-    checks.push({ id: "emergency-stop", passed: safetyRuntime.getOutput(fbdProgram.bindings.outputs["pump-1-command"] ?? 1) === 0 && safetyRuntime.getOutput(fbdProgram.bindings.outputs["pump-2-command"] ?? 3) === 0, detail: "DI1 removes the station run permission" });
+    checks.push({ id: "emergency-stop", passed: !isOn(safetyRuntime.readOutput("pump-1-command")) && !isOn(safetyRuntime.readOutput("pump-2-command")), detail: "Emergency stop removes the station run permission" });
     const hmiRuntime = await createLoadedRuntime();
-    const commands = hmiRuntime.stepAndRenderScreen(100, 0);
-    checks.push({ id: "controller-hmi", passed: commands.length > 0 && hmiRuntime.drawEndSeen, detail: `${commands.length} FBDdraw commands emitted for 320×240 HMI` });
-    const digestBytes = Uint8Array.from(compiledFbd.fbdbin);
+    hmiRuntime.step(100);
+    const displayStatus = hmiRuntime.displayStatus();
+    checks.push({ id: "controller-hmi", passed: displayStatus.commandCount > 0 && displayStatus.complete, detail: `${displayStatus.commandCount} draw commands emitted for the controller display` });
+    const digestBytes = Uint8Array.from(compiledFbd.artifact);
     const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", digestBytes.buffer));
     const digestLabel = Array.from(digest.slice(0, 6), (byte) => byte.toString(16).padStart(2, "0")).join("");
     const passed = checks.filter((check) => check.passed).length;
     const result = passed === checks.length ? "passed" : "failed";
     summary.classList.add(result);
-    summary.textContent = `${passed}/${checks.length} passed · ${Math.round(performance.now() - startedAt)} ms · fbdbin sha256:${digestLabel}…`;
+    summary.textContent = `${passed}/${checks.length} passed · ${Math.round(performance.now() - startedAt)} ms · artifact sha256:${digestLabel}…`;
     for (const scenario of checks) {
       const row = document.createElement("div");
       row.className = `scenario-result ${scenario.passed ? "passed" : "failed"}`;
       row.innerHTML = `<span>${scenario.passed ? "✓" : "×"}</span><strong>${escapeHtml(scenario.id)}</strong><small>${escapeHtml(scenario.detail)}</small>`;
       results.append(row);
     }
-    audit("Saturn conformance completed", `${passed}/${checks.length} checks passed`, result === "passed" ? "info" : "alarm");
+    audit(`${activeProfile.displayName} conformance completed`, `${passed}/${checks.length} checks passed`, result === "passed" ? "info" : "alarm");
   } catch (error) {
     summary.classList.add("failed");
     summary.textContent = error instanceof Error ? error.message : String(error);
@@ -2219,7 +1992,11 @@ function bindControls(): void {
   });
   el("ack-alarms").addEventListener("click", () => { events.forEach((event) => { event.acknowledged = true; }); renderEvents(); toast("Events acknowledged"); });
   el("project-to-hmi").addEventListener("click", () => {
-    const projection = projectScadaToHmi([
+    if (activeProfile.projectScada === undefined) {
+      toast(`${activeProfile.displayName} does not support SCADA projection`, "alarm");
+      return;
+    }
+    const report = activeProfile.projectScada(fbdProgram, [
       { id: "pressure", kind: "value", label: "Header ", position: { x: 8, y: 40 }, binding: { source: "wp", ref: "wp_pressure", format: "fixed2", unit: "bar" } },
       { id: "pump1", kind: "status", label: "P-101 ", position: { x: 8, y: 70 }, binding: { source: "wp", ref: "wp_pump1", format: "bool" } },
       { id: "pump2", kind: "status", label: "P-102 ", position: { x: 168, y: 70 }, binding: { source: "wp", ref: "wp_pump2", format: "bool" } },
@@ -2230,13 +2007,10 @@ function bindControls(): void {
       { id: "events", kind: "alarm-list", label: "Event history", position: { x: 8, y: 194 } },
       { id: "commands", kind: "command", label: "Operator commands", position: { x: 8, y: 218 } },
     ], "BOOSTER STATION");
-    fbdProgram.hmiScreens[0] = projection.screen;
     buildFbd(false);
-    const counts = { transferred: 0, simplified: 0, "software-only": 0 };
-    for (const item of projection.report) counts[item.status] += 1;
-    el("hmi-compatibility-summary").textContent = `${counts.transferred} compatible · ${counts.simplified} simplified · ${counts["software-only"]} software-only`;
-    audit("SCADA projected to Saturn HMI", `${counts.transferred} widgets transferred, ${counts.simplified} simplified, ${counts["software-only"]} kept in software`);
-    toast("Controller HMI rebuilt into the .fbdbin artifact");
+    el("hmi-compatibility-summary").textContent = `${report.transferred} compatible · ${report.simplified} simplified · ${report.softwareOnly} software-only`;
+    audit("SCADA projected to the controller HMI", `${report.transferred} widgets transferred, ${report.simplified} simplified, ${report.softwareOnly} kept in software`);
+    toast("Controller HMI rebuilt into the release artifact");
   });
   el("run-scenarios").addEventListener("click", () => void runScenarios());
   el("close-scenarios").addEventListener("click", () => el<HTMLDialogElement>("scenario-dialog").close());
@@ -2251,19 +2025,18 @@ function bindControls(): void {
 async function loadPackage(): Promise<void> {
   const badge = el("runtime-badge");
   try {
-    const [pkg, runtime] = await Promise.all([resolvePackage(PACKAGE_URL), FbdRuntime.create()]);
-    const loaded = runtime.load(compiledFbd.fbdbin);
-    if (!loaded.ok) throw new Error(loaded.message);
+    const [pkg, runtime] = await Promise.all([resolvePackage(PACKAGE_URL), activeProfile.createRuntime(fbdProgram)]);
+    const loaded = runtime.load(compiledFbd.artifact);
+    if (!loaded.ok) throw new Error(loaded.message ?? "runtime rejected the compiled artifact");
     fbdRuntime = runtime;
-    el("package-title").textContent = "Saturn PLC · Booster station";
-    el("package-badge").textContent = `${pkg.manifest.name}@${pkg.manifest.version} + saturn-fbd`;
-    el("wasm-size").textContent = `${compiledFbd.fbdbin.length.toLocaleString("en-US")} bytes`;
+    el("package-title").textContent = PROJECT_TITLE;
+    el("package-badge").textContent = `${pkg.manifest.name}@${pkg.manifest.version} + ${activeProfile.profileId}`;
+    el("wasm-size").textContent = `${compiledFbd.artifact.length.toLocaleString("en-US")} bytes`;
     badge.classList.add("is-ready");
-    const portCount = Object.keys(fbdProgram.bindings.inputs).length + Object.keys(fbdProgram.bindings.outputs).length;
-    badge.textContent = `Saturn FBD runtime · ${portCount} ports · RTL v${compiledFbd.requiredRtlVersion}`;
+    badge.textContent = `${activeProfile.displayName} runtime · ${activeProfile.ioCount(fbdProgram)} ports · ${compiledFbd.targetLabel}`;
     const dot = document.createElement("i");
     badge.prepend(dot);
-    audit("Saturn runtime instantiated", `${compiledFbd.elementCount} elements · ${compiledFbd.fbdbin.length} byte fbdbin · ${loaded.memorySize} bytes runtime memory`);
+    audit(`${activeProfile.displayName} runtime instantiated`, `${compiledFbd.elementCount} elements · ${compiledFbd.artifact.length} byte artifact${loaded.memorySize !== undefined ? ` · ${loaded.memorySize} bytes runtime memory` : ""}`);
   } catch (error) {
     badge.classList.add("is-error");
     badge.textContent = error instanceof Error ? error.message : String(error);
