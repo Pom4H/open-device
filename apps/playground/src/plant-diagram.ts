@@ -1,3 +1,5 @@
+import { pointsToPath, routeOrthogonal, type RoutePoint, type RouteSide } from "./routing.ts";
+
 export type PlantQuality = "good" | "stale" | "bad" | "unknown";
 
 export interface BoosterStationState {
@@ -12,8 +14,8 @@ export interface BoosterStationState {
   quality: PlantQuality;
 }
 
-type Point = { x: number; y: number };
-type PortDirection = "left" | "right" | "top" | "bottom";
+type Point = RoutePoint;
+type PortDirection = RouteSide;
 type Port = Point & { direction: PortDirection };
 type ShapeName = "tank" | "handValve" | "pump" | "header" | "ctrlValve" | "gauge" | "instrument" | "outlet";
 
@@ -94,84 +96,13 @@ function portPoint(reference: { node: string; port: string }): Port {
   return { x: node.x + local.x, y: node.y + local.y, direction: local.direction };
 }
 
-function stubOut(point: Point, direction: PortDirection, distance: number): Point {
-  if (direction === "left") return { x: point.x - distance, y: point.y };
-  if (direction === "right") return { x: point.x + distance, y: point.y };
-  if (direction === "top") return { x: point.x, y: point.y - distance };
-  return { x: point.x, y: point.y + distance };
-}
-
-function bends(first: Point, firstDirection: PortDirection, second: Point, secondDirection: PortDirection): Point[] {
-  const firstHorizontal = firstDirection === "left" || firstDirection === "right";
-  const secondHorizontal = secondDirection === "left" || secondDirection === "right";
-  if (firstHorizontal && secondHorizontal) {
-    const middleX = (first.x + second.x) / 2;
-    return [{ x: middleX, y: first.y }, { x: middleX, y: second.y }];
-  }
-  if (!firstHorizontal && !secondHorizontal) {
-    const middleY = (first.y + second.y) / 2;
-    return [{ x: first.x, y: middleY }, { x: second.x, y: middleY }];
-  }
-  return firstHorizontal ? [{ x: second.x, y: first.y }] : [{ x: first.x, y: second.y }];
-}
-
-function simplify(points: Point[]): Point[] {
-  const result: Point[] = [];
-  for (const point of points) {
-    const previous = result.at(-1);
-    if (previous && Math.abs(previous.x - point.x) < 0.5 && Math.abs(previous.y - point.y) < 0.5) continue;
-    result.push(point);
-    while (result.length >= 3) {
-      const first = result[result.length - 3];
-      const middle = result[result.length - 2];
-      const last = result[result.length - 1];
-      if (!first || !middle || !last) break;
-      const collinear = (Math.abs(first.x - middle.x) < 0.5 && Math.abs(middle.x - last.x) < 0.5)
-        || (Math.abs(first.y - middle.y) < 0.5 && Math.abs(middle.y - last.y) < 0.5);
-      if (!collinear) break;
-      result.splice(result.length - 2, 1);
-    }
-  }
-  return result;
-}
-
-function routeOrthogonal(source: Port, target: Port): Point[] {
-  const sourceStub = stubOut(source, source.direction, 24);
-  const targetStub = stubOut(target, target.direction, 24);
-  return simplify([source, sourceStub, ...bends(sourceStub, source.direction, targetStub, target.direction), targetStub, target]);
-}
-
-function pointsToPath(points: Point[], radius = 9): string {
-  const first = points[0];
-  if (!first) return "";
-  let path = `M ${first.x} ${first.y}`;
-  for (let index = 1; index < points.length - 1; index += 1) {
-    const previous = points[index - 1];
-    const corner = points[index];
-    const next = points[index + 1];
-    if (!previous || !corner || !next) continue;
-    const incoming = Math.hypot(corner.x - previous.x, corner.y - previous.y);
-    const outgoing = Math.hypot(next.x - corner.x, next.y - corner.y);
-    const appliedRadius = Math.min(radius, incoming / 2, outgoing / 2);
-    if (appliedRadius < 1) {
-      path += ` L ${corner.x} ${corner.y}`;
-      continue;
-    }
-    const incomingX = corner.x - ((corner.x - previous.x) / incoming) * appliedRadius;
-    const incomingY = corner.y - ((corner.y - previous.y) / incoming) * appliedRadius;
-    const outgoingX = corner.x + ((next.x - corner.x) / outgoing) * appliedRadius;
-    const outgoingY = corner.y + ((next.y - corner.y) / outgoing) * appliedRadius;
-    path += ` L ${incomingX} ${incomingY} Q ${corner.x} ${corner.y} ${outgoingX} ${outgoingY}`;
-  }
-  const last = points.at(-1);
-  return last ? `${path} L ${last.x} ${last.y}` : path;
-}
-
 function edgeMarkup(edge: PlantEdge): string {
   const source = portPoint(edge.from);
   const target = portPoint(edge.to);
   if (edge.flow === "leader") return `<path class="pid-leader" d="M ${source.x} ${source.y} L ${target.x} ${target.y}"/>`;
-  const path = pointsToPath(routeOrthogonal(source, target));
+  const path = pointsToPath(
+    routeOrthogonal({ ...source, side: source.direction }, { ...target, side: target.direction }),
+  );
   return `<g class="pid-edge" data-flow="${edge.flow}" data-state="off"><path class="pid-tube" d="${path}"/><path class="pid-flow" d="${path}"/></g>`;
 }
 

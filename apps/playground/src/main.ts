@@ -16,6 +16,7 @@ import {
 import "./profiles/saturn-fbd.ts";
 import { BUILTIN_RENDERERS, resolveEquipmentCatalog, signalForModelPort, type ResolvedEquipmentDefinition } from "./equipment-catalog.ts";
 import { initializeBoosterStationDiagram, updateBoosterStationDiagram } from "./plant-diagram.ts";
+import { pointsToPath, routeOrthogonal } from "./routing.ts";
 import { parseEngineeringProject, type EngineeringProjectDocument, type ProjectAdapter } from "./project-document.ts";
 
 const PACKAGE_URL = new URL("/packages/pump-controller/open-device.json", location.href).href;
@@ -838,8 +839,51 @@ function cablePath(from: { x: number; y: number; side: PortSide }, to: { x: numb
   return `M ${from.x} ${from.y} C ${a.x} ${a.y}, ${b.x} ${b.y}, ${to.x} ${to.y}`;
 }
 
+/**
+ * Which process connections carry water right now. A running pump pushes flow
+ * downstream through output→input pipe hops and pulls it upstream through its
+ * suction side; branches that no running pump reaches stay still. This is a
+ * topology walk, not a hydraulic solver — pressure stays with the plant model.
+ */
+function activeProcessPipes(): Set<string> {
+  const active = new Set<string>();
+  const processConnections = connections.filter((connection) => findPort(connection.from)?.port.signal === "process");
+  const seeds = devices.filter((device) =>
+    (device.id === "pump1" && pump1Running) || (device.id === "pump2" && pump2Running),
+  ).map((device) => device.id);
+  for (const seed of seeds) {
+    const downstream = [seed];
+    const visitedDown = new Set<string>();
+    while (downstream.length > 0) {
+      const nodeId = downstream.pop() as string;
+      if (visitedDown.has(nodeId)) continue;
+      visitedDown.add(nodeId);
+      for (const connection of processConnections) {
+        if (connection.from.nodeId !== nodeId) continue;
+        active.add(connection.id);
+        downstream.push(connection.to.nodeId);
+      }
+    }
+    const upstream = [seed];
+    const visitedUp = new Set<string>();
+    while (upstream.length > 0) {
+      const nodeId = upstream.pop() as string;
+      if (visitedUp.has(nodeId)) continue;
+      visitedUp.add(nodeId);
+      for (const connection of processConnections) {
+        if (connection.to.nodeId !== nodeId) continue;
+        active.add(connection.id);
+        upstream.push(connection.from.nodeId);
+      }
+    }
+  }
+  return active;
+}
+
 function sourceSample(connection: Connection): Sample {
-  if (findPort(connection.from)?.port.signal === "process") return { value: true, quality: "good" };
+  if (findPort(connection.from)?.port.signal === "process") {
+    return { value: activeProcessPipes().has(connection.id), quality: "good" };
+  }
   if (connection.from.nodeId === "sensor" && connection.from.portId === "pressure") {
     return { value: pressure, quality: el<HTMLSelectElement>("pressure-quality").value as Quality };
   }
@@ -895,36 +939,64 @@ function registrySample(device: DeviceSpec, portId: string): Sample {
   return { value: false, quality: port?.signal === "digital" ? "good" : "unknown" };
 }
 
+function connectionHitPath(connection: Connection, d: string): SVGPathElement {
+  const hit = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  hit.setAttribute("d", d);
+  hit.setAttribute("class", "cable-hit");
+  hit.addEventListener("click", () => {
+    if (mode !== "simulate") return;
+    selected = { kind: "connection", id: connection.id };
+    pendingPort = null;
+    draftCable.toggleAttribute("hidden", true);
+    renderSelection();
+  });
+  return hit;
+}
+
 function renderCables(): void {
   cablesGroup.replaceChildren();
-  for (const connection of connections) {
+  const flowing = activeProcessPipes();
+  // Pipes sit under signal wiring, exactly as in a cabinet-over-plant drawing.
+  const ordered = [...connections].sort((a, b) =>
+    Number(findPort(b.from)?.port.signal === "process") - Number(findPort(a.from)?.port.signal === "process"));
+  for (const connection of ordered) {
     const from = portPoint(connection.from);
     const to = portPoint(connection.to);
     const source = findPort(connection.from)?.port;
     if (!from || !to || !source) continue;
+    const sample = sourceSample(connection);
+    const isSelected = selected?.kind === "connection" && selected.id === connection.id;
+
+    if (source.signal === "process") {
+      // A pipe is routed orthogonally from the port anchors on every render —
+      // geometry is never stored, so it follows the equipment when dragged.
+      const d = pointsToPath(routeOrthogonal(from, to));
+      const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      group.setAttribute("class", `pipe${isSelected ? " is-selected" : ""}${sample.quality !== "good" ? " is-bad" : ""}`);
+      group.setAttribute("data-state", flowing.has(connection.id) ? "on" : "off");
+      const tube = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      tube.setAttribute("d", d);
+      tube.setAttribute("class", "pipe-tube");
+      const water = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      water.setAttribute("d", d);
+      water.setAttribute("class", "pipe-flow");
+      group.append(tube, water);
+      cablesGroup.append(group, connectionHitPath(connection, d));
+      continue;
+    }
+
     const d = cablePath(from, to);
     const under = document.createElementNS("http://www.w3.org/2000/svg", "path");
     under.setAttribute("d", d);
     under.setAttribute("class", "cable-under");
     const visible = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    const sample = sourceSample(connection);
     const classes = ["cable", source.signal];
     if (sampleOn(sample) || source.signal === "analog") classes.push("is-active");
     if (sample.quality !== "good") classes.push("is-bad");
-    if (selected?.kind === "connection" && selected.id === connection.id) classes.push("is-selected");
+    if (isSelected) classes.push("is-selected");
     visible.setAttribute("d", d);
     visible.setAttribute("class", classes.join(" "));
-    const hit = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    hit.setAttribute("d", d);
-    hit.setAttribute("class", "cable-hit");
-    hit.addEventListener("click", () => {
-      if (mode !== "simulate") return;
-      selected = { kind: "connection", id: connection.id };
-      pendingPort = null;
-      draftCable.toggleAttribute("hidden", true);
-      renderSelection();
-    });
-    cablesGroup.append(under, visible, hit);
+    cablesGroup.append(under, visible, connectionHitPath(connection, d));
   }
   if (mode === "simulate") el("status-summary").textContent = `${devices.length} ${devices.length === 1 ? "instance" : "instances"} · ${connections.length} ${connections.length === 1 ? "connection" : "connections"}`;
 }

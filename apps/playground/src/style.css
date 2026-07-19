@@ -282,6 +282,15 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .cable.is-selected { stroke-width: 6; filter: url(#cable-glow); }
 .cable.draft { stroke: var(--cyan); stroke-width: 3; stroke-dasharray: 6 6; }
 
+/* Scene pipes: a static tube plus a marching-dash water overlay. The overlay
+   animation is always defined and merely paused, so flow starts instantly. */
+.pipe { pointer-events: none; }
+.pipe-tube { fill: none; stroke: #253d54; stroke-width: 13; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 2px 1px rgb(0 0 0 / 55%)); }
+.pipe-flow { fill: none; stroke: #38bdf8; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 12 10; opacity: .08; animation: pid-flow .8s linear infinite paused; transition: opacity 220ms ease; }
+.pipe[data-state="on"] .pipe-flow { opacity: .92; animation-play-state: running; }
+.pipe.is-bad .pipe-flow { stroke: var(--yellow); opacity: .3; }
+.pipe.is-selected .pipe-tube { stroke: #33506e; filter: url(#cable-glow); }
+
 .device-node {
   position: absolute;
   pointer-events: auto;

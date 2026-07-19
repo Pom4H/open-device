@@ -27,6 +27,20 @@ with declared equipment ports, orthogonal pipe routing, live bindings, and quali
 The controller logic, physical plant model, and software SCADA view therefore remain
 separate artifacts even though the Studio presents them in one workflow.
 
+Controller targets plug in behind `src/controller-profile.ts`, a vendor-neutral seam:
+program lifecycle, compilation, runtime IO by semantic port IDs, the front-panel view
+with terminal anchors, and the optional firmware display. `src/profiles/saturn-fbd.ts`
+is the only file that imports the Saturn package. The program editor is contextual,
+not the Studio's front door — the tab exists only while a device with a registered
+controller profile is on the scene, and its label comes from the profile.
+
+Scene connections render by domain. Process connections are pipes: routed
+orthogonally from port anchors on every render (geometry is never stored), with a
+marching-dash water overlay driven by a directional topology walk from running pumps —
+branches no running pump reaches stay still. Signal, safety, power, and network
+connections remain cables. The shared router lives in `src/routing.ts` and also
+drives the P&ID panel in `src/plant-diagram.ts`.
+
 The current catalog is the non-normative static document at
 `examples/catalog/open-device-catalog.json`. Each row resolves a real
 `open-device.json` and device model. Multiple pump instances deliberately resolve to
